@@ -44,6 +44,8 @@ INSTALLED_APPS = [
     'payments',
     'reviews',
     'promotions',
+    # TIỆN ÍCH DJANGO (format số, ngày tháng)
+    'django.contrib.humanize',
 ]
 
 # MODEL USER TÙY CHỈNH
@@ -131,4 +133,4 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # ĐƯỜNG DẪN LOGIN
-LOGIN_URL = '/login/'
+LOGIN_URL = '/accounts/login/'

@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Sân yêu thích — CourtBooking{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+
+    <h2 class="fw-bold mb-4">
+        <i class="bi bi-heart-fill text-danger me-2"></i>Sân yêu thích của tôi
+    </h2>
+
+    {% if courts %}
+        <div class="row g-4">
+            {% for court in courts %}
+            <div class="col-12 col-md-6">
+                <div class="card h-100 shadow-sm border-0">
+
+                    <!-- ẢNH SÂN + NÚT TIM -->
+                    <div class="position-relative">
+                        {% if court.image %}
+                            <img src="{{ court.image.url }}"
+                                 class="card-img-top"
+                                 alt="{{ court.name }}"
+                                 style="height: 260px; object-fit: cover;">
+                        {% else %}
+                            <div class="d-flex align-items-center justify-content-center"
+                                 style="height: 260px; background: #c8e6c9;">
+                                {% if court.court_type == 'badminton' %}
+                                    <span style="font-size: 64px;">🏸</span>
+                                {% elif court.court_type == 'football' %}
+                                    <span style="font-size: 64px;">⚽</span>
+                                {% elif court.court_type == 'pickleball' %}
+                                    <span style="font-size: 64px;">🏓</span>
+                                {% elif court.court_type == 'basketball' %}
+                                    <span style="font-size: 64px;">🏀</span>
+                                {% elif court.court_type == 'tennis' %}
+                                    <span style="font-size: 64px;">🎾</span>
+                                {% else %}
+                                    <span style="font-size: 64px;">🏟️</span>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+
+                        <!-- NÚT TIM (luôn đặc đỏ vì tất cả sân ở đây đều đã thích) -->
+                        <form method="POST"
+                              action="{% url 'courts:toggle_favorite' court.pk %}"
+                              style="position: absolute; top: 8px; right: 8px;">
+                            {% csrf_token %}
+                            <button type="submit"
+                                    class="btn btn-light btn-sm rounded-circle p-0"
+                                    style="width: 36px; height: 36px;">
+                                <i class="bi bi-heart-fill text-danger"></i>
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="card-body d-flex flex-column">
+                        <!-- TÊN SÂN -->
+                        <h5 class="card-title fw-bold mb-2">{{ court.name }}</h5>
+
+                        <!-- LOẠI SÂN -->
+                        <span class="badge bg-success mb-2" style="width: fit-content;">
+                            {{ court.get_court_type_display }}
+                        </span>
+
+                        <!-- ĐỊA CHỈ -->
+                        <p class="text-muted small mb-2">
+                            <i class="bi bi-geo-alt-fill me-1"></i>{{ court.address }}
+                        </p>
+
+                        <!-- GIÁ THUÊ -->
+                        <p class="fw-semibold text-success mb-3">
+                            {{ court.price_per_hour|intcomma }}đ / giờ
+                        </p>
+
+                        <!-- NÚT XEM CHI TIẾT -->
+                        <a href="{% url 'courts:court_detail' court.pk %}"
+                           class="btn btn-outline-success mt-auto">Xem chi tiết</a>
+                    </div>
+
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+    {% else %}
+        <!-- CHƯA CÓ SÂN YÊU THÍCH -->
+        <div class="text-center py-5">
+            <p class="text-muted mb-3">Bạn chưa có sân yêu thích nào.</p>
+            <a href="{% url 'courts:home' %}" class="btn btn-success">Khám phá sân ngay</a>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

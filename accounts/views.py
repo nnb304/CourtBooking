@@ -14,7 +14,7 @@ def register_view(request):
             login(request, user)
             request.session['role'] = user.role
             messages.success(request, 'Đăng ký thành công! Chào mừng bạn đến CourtBooking.')
-            return redirect('accounts:profile')
+            return redirect('courts:home')
         else:
             messages.error(request, 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.')
     else:
@@ -25,7 +25,7 @@ def register_view(request):
 # ĐĂNG NHẬP
 def login_view(request):
     if request.user.is_authenticated:
-        return redirect('accounts:profile')
+        return redirect('courts:home')
 
     if request.method == 'POST':
         form = LoginForm(request, data=request.POST)
@@ -34,7 +34,7 @@ def login_view(request):
             login(request, user)
             request.session['role'] = user.role
             messages.success(request, f'Chào mừng trở lại, {user.username}!')
-            return redirect('accounts:profile')
+            return redirect('courts:home')
         else:
             messages.error(request, 'Tên đăng nhập hoặc mật khẩu không đúng.')
     else:

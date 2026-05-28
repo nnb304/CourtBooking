@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}{{ court.name }} — CourtBooking{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+
+    <!-- NÚT QUAY LẠI -->
+    <a href="{% url 'courts:home' %}" class="btn btn-outline-secondary btn-sm mb-4">
+        ← Quay lại danh sách
+    </a>
+
+    <!-- ẢNH SÂN (full width) -->
+    {% if court.image %}
+        <img src="{{ court.image.url }}"
+             alt="{{ court.name }}"
+             class="img-fluid rounded w-100 mb-4"
+             style="max-height: 450px; object-fit: cover;">
+    {% else %}
+        <!-- PLACEHOLDER EMOJI KHI CHƯA CÓ ẢNH -->
+        <div class="d-flex align-items-center justify-content-center rounded mb-4"
+             style="height: 400px; background: #c8e6c9;">
+            {% if court.court_type == 'badminton' %}
+                <span style="font-size: 120px;">🏸</span>
+            {% elif court.court_type == 'football' %}
+                <span style="font-size: 120px;">⚽</span>
+            {% elif court.court_type == 'pickleball' %}
+                <span style="font-size: 120px;">🏓</span>
+            {% elif court.court_type == 'basketball' %}
+                <span style="font-size: 120px;">🏀</span>
+            {% elif court.court_type == 'tennis' %}
+                <span style="font-size: 120px;">🎾</span>
+            {% else %}
+                <span style="font-size: 120px;">🏟️</span>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    <!-- THÔNG TIN SÂN (giới hạn chiều rộng để dễ đọc) -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+
+            <!-- TÊN SÂN + NÚT TIM YÊU THÍCH -->
+            <div class="d-flex align-items-center gap-3 mb-2">
+                <h2 class="fw-bold mb-0">{{ court.name }}</h2>
+                <form method="POST" action="{% url 'courts:toggle_favorite' court.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                        {% if court.id in favorited_ids %}
+                            <i class="bi bi-heart-fill"></i> Đã thích
+                        {% else %}
+                            <i class="bi bi-heart"></i> Yêu thích
+                        {% endif %}
+                    </button>
+                </form>
+            </div>
+
+            <!-- LOẠI SÂN -->
+            <span class="badge bg-success mb-3" style="font-size: .9rem;">
+                {{ court.get_court_type_display }}
+            </span>
+
+            <!-- ĐỊA CHỈ -->
+            <p class="text-muted mb-2">
+                <i class="bi bi-geo-alt-fill me-1"></i>{{ court.address }}
+            </p>
+
+            <!-- GIÁ THUÊ -->
+            <p class="mb-3">
+                <span class="fw-bold" style="font-size: 1.6rem; color: #1b5e20;">
+                    {{ court.price_per_hour|intcomma }}đ
+                </span>
+                <span class="text-muted"> / giờ</span>
+            </p>
+
+            <!-- MÔ TẢ (chỉ hiện nếu có) -->
+            {% if court.description %}
+                <p class="mb-3">{{ court.description }}</p>
+            {% endif %}
+
+            <!-- CHỦ SÂN -->
+            <p class="text-muted small mb-4">
+                Chủ sân: {{ court.owner.username }}
+            </p>
+
+            <!-- NÚT ĐẶT SÂN (luồng đặt sân làm sau) -->
+            <a href="#" class="btn btn-success btn-lg w-100">Đặt sân ngay</a>
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}

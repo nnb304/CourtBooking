@@ -7,11 +7,13 @@
 
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 </head>
 <body>
 
 <!-- THANH ĐIỀU HƯỚNG -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #1b5e20;">
     <div class="container">
         <!-- Tên thương hiệu, link về trang chủ -->
         <a class="navbar-brand fw-bold" href="/">CourtBooking</a>
@@ -25,6 +27,11 @@
             <ul class="navbar-nav ms-auto">
                 {% if user.is_authenticated %}
                     <!-- Người dùng đã đăng nhập -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'courts:favorite_list' %}">
+                            <i class="bi bi-heart-fill text-danger"></i> Yêu thích
+                        </a>
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'accounts:profile' %}">{{ user.username }}</a>
                     </li>
@@ -65,8 +72,8 @@
 </div>
 {% endif %}
 
-<!-- NỘI DUNG TRANG CON -->
-<main class="container my-4">
+<!-- NỘI DUNG TRANG CON (không có container ở đây, mỗi trang tự quản lý layout) -->
+<main>
     {% block content %}{% endblock %}
 </main>
 
