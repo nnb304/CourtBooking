@@ -1,0 +1,291 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Đặt sân {{ court.name }} — CourtBooking{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+
+    <!-- NÚT QUAY LẠI -->
+    <a href="{% url 'courts:court_detail' court.pk %}"
+       class="btn btn-outline-secondary btn-sm mb-4">
+        ← Quay lại chi tiết sân
+    </a>
+
+    <!-- THÔNG TIN SÂN -->
+    <div class="card border-0 mb-4" style="background:#f1f8e9;">
+        <div class="card-body py-3">
+            <h5 class="fw-bold mb-1">{{ court.name }}</h5>
+            <span class="text-muted small">
+                <i class="bi bi-geo-alt-fill me-1"></i>{{ court.address }}
+            </span>
+            <p class="fw-semibold mt-2 mb-0" style="color:#1b5e20;">
+                {{ court.price_per_hour|intcomma }}đ / giờ
+            </p>
+        </div>
+    </div>
+
+    <!-- LỖI SERVER-SIDE (trùng lịch hoặc ngày quá khứ lọt qua JS) -->
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger mb-3">
+            {% for error in form.non_field_errors %}
+                <div>{{ error }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- FORM CHỌN NGÀY (GET) -->
+    <form method="GET" action="" class="mb-3 d-flex align-items-center gap-2">
+        <label class="form-label fw-semibold mb-0">Ngày chơi:</label>
+        <input type="date" name="date" class="form-control" style="width:180px;"
+               value="{{ selected_date_str }}"
+               min="{{ today_str }}">
+        <button type="submit" class="btn btn-outline-success">Xem lịch</button>
+    </form>
+
+    <p class="text-muted small mb-2">
+        Lịch ngày <strong>{{ selected_date|date:"d/m/Y" }}</strong> —
+        Click ô bắt đầu rồi click ô kết thúc (hoặc kéo chuột). Tối thiểu 1 giờ, tối đa 4 giờ.
+    </p>
+
+    <!-- LƯỚI TIME SLOT -->
+    <div id="slot-grid">
+        {% for slot in slots_info %}
+            <div class="time-slot {% if slot.is_booked %}booked{% endif %}"
+                 data-index="{{ slot.index }}"
+                 data-time="{{ slot.time_label }}"
+                 {% if slot.is_booked %}title="Đã có người đặt"{% endif %}>
+                {{ slot.time_label }}
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Ô TỔNG KẾT (ẩn mặc định, JS bật lên khi chọn hợp lệ) -->
+    <div id="summary" style="display:none;" class="mt-3">
+        <div class="card border-0 p-3" style="background:#e8f5e9; border-radius:8px;">
+            <p id="summary-text" class="mb-0 fw-semibold" style="color:#1b5e20;"></p>
+        </div>
+    </div>
+
+    <!-- FORM ĐẶT SÂN (POST) — các field ẩn, JS điền giá trị -->
+    <form method="POST" action="{% url 'bookings:booking_create' court.pk %}" class="mt-3">
+        {% csrf_token %}
+        {# date được pre-fill bằng selected_date_str, JS không cần đổi #}
+        <input type="hidden" name="date" id="id_date" value="{{ selected_date_str }}">
+        <input type="hidden" name="start_time" id="id_start_time" value="">
+        <input type="hidden" name="duration_hours" id="id_duration_hours" value="">
+        <div class="d-grid">
+            <button type="submit" id="submit-btn"
+                    class="btn btn-lg fw-semibold text-white"
+                    style="background-color:#1b5e20;"
+                    disabled>
+                Xác nhận đặt sân
+            </button>
+        </div>
+    </form>
+
+</div>
+
+<!-- ===== STYLE ===== -->
+<style>
+#slot-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    user-select: none;
+}
+.time-slot {
+    padding: 12px 6px;
+    text-align: center;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: .9rem;
+    transition: background .15s, color .15s;
+    cursor: pointer;
+    background: #f5f5f5;
+    color: #333;
+}
+.time-slot:hover:not(.booked):not(.selected) {
+    background: #e0e0e0;
+}
+.time-slot.booked {
+    background: #ffebee;
+    color: #bbb;
+    cursor: not-allowed;
+    text-decoration: line-through;
+}
+.time-slot.selected {
+    background: #1b5e20;
+    color: #fff;
+}
+</style>
+
+<!-- ===== JAVASCRIPT ===== -->
+<script>
+// GIÁ THUÊ MỖI GIỜ (truyền từ Django)
+const PRICE_PER_HOUR = parseInt("{{ court.price_per_hour|floatformat:0 }}");
+
+const allSlots   = document.querySelectorAll('.time-slot');
+const summaryDiv = document.getElementById('summary');
+const summaryTxt = document.getElementById('summary-text');
+const submitBtn  = document.getElementById('submit-btn');
+const inputStart = document.getElementById('id_start_time');
+const inputDur   = document.getElementById('id_duration_hours');
+
+let clickStart = null;   // slot index của click đầu tiên (chế độ 2-click)
+let dragStart  = null;   // slot index khi bắt đầu kéo
+let hasMoved   = false;  // phân biệt click vs kéo
+
+// ---------- HELPER ----------
+
+function slotEl(idx) {
+    return document.querySelector(`.time-slot[data-index="${idx}"]`);
+}
+
+function clearSelection() {
+    allSlots.forEach(s => s.classList.remove('selected'));
+}
+
+function hideSummary() {
+    summaryDiv.style.display = 'none';
+    submitBtn.disabled = true;
+    inputStart.value = '';
+    inputDur.value   = '';
+}
+
+function previewRange(a, b) {
+    clearSelection();
+    const lo = Math.min(a, b), hi = Math.max(a, b);
+    for (let i = lo; i <= hi; i++) {
+        slotEl(i)?.classList.add('selected');
+    }
+}
+
+function hasBookedInRange(lo, hi) {
+    for (let i = lo; i <= hi; i++) {
+        if (slotEl(i)?.classList.contains('booked')) return true;
+    }
+    return false;
+}
+
+function applySelection(a, b) {
+    const lo    = Math.min(a, b);
+    const hi    = Math.max(a, b);
+    const count = hi - lo + 1;
+
+    // KIỂM TRA ĐA DẠNG ĐIỀU KIỆN
+    if (hasBookedInRange(lo, hi)) {
+        alert('Khoảng giờ này có ô đã được đặt. Vui lòng chọn khoảng khác.');
+        clearSelection();
+        hideSummary();
+        return false;
+    }
+    if (count % 2 !== 0) {
+        alert('Vui lòng chọn theo đơn vị 1 giờ (2 ô liền nhau).');
+        clearSelection();
+        hideSummary();
+        return false;
+    }
+    if (count < 2) {
+        alert('Vui lòng chọn ít nhất 1 giờ (2 ô).');
+        clearSelection();
+        hideSummary();
+        return false;
+    }
+    if (count > 8) {
+        alert('Tối đa 4 giờ (8 ô). Vui lòng chọn lại.');
+        clearSelection();
+        hideSummary();
+        return false;
+    }
+
+    // LỰA CHỌN HỢP LỆ — tô màu và điền form
+    previewRange(lo, hi);
+
+    const startTime    = slotEl(lo).dataset.time;
+    const durationHrs  = count / 2;
+
+    // TÍNH GIỜ KẾT THÚC
+    const [sh, sm]     = startTime.split(':').map(Number);
+    const endMins      = sh * 60 + sm + count * 30;
+    const endH         = Math.floor(endMins / 60);
+    const endM         = endMins % 60;
+    const endTime      = `${String(endH).padStart(2,'0')}:${String(endM).padStart(2,'0')}`;
+
+    // ĐIỀN VÀO HIDDEN INPUT
+    inputStart.value = startTime;
+    inputDur.value   = durationHrs;
+
+    // HIỂN THỊ TỔNG KẾT
+    const total = PRICE_PER_HOUR * durationHrs;
+    summaryTxt.textContent =
+        `Đã chọn: ${startTime} – ${endTime} (${durationHrs} giờ) — Tổng tiền: ${total.toLocaleString('vi-VN')}đ`;
+    summaryDiv.style.display = 'block';
+    submitBtn.disabled = false;
+
+    return true;
+}
+
+// ---------- CLICK (2-click selection) ----------
+
+allSlots.forEach(slot => {
+    slot.addEventListener('click', () => {
+        if (slot.classList.contains('booked')) return;
+        if (hasMoved) { hasMoved = false; return; } // drag đã xử lý
+
+        const idx = parseInt(slot.dataset.index);
+
+        if (clickStart === null) {
+            // CLICK LẦN 1: chọn ô đầu
+            clickStart = idx;
+            clearSelection();
+            slot.classList.add('selected');
+            hideSummary();
+        } else if (clickStart === idx) {
+            // CLICK LẠI Ô CŨ: huỷ chọn
+            clickStart = null;
+            clearSelection();
+            hideSummary();
+        } else {
+            // CLICK LẦN 2: xác nhận khoảng
+            const ok = applySelection(clickStart, idx);
+            clickStart = null;
+        }
+    });
+});
+
+// ---------- DRAG (mousedown + mouseenter + mouseup) ----------
+
+allSlots.forEach(slot => {
+    slot.addEventListener('mousedown', e => {
+        if (slot.classList.contains('booked')) return;
+        e.preventDefault();
+        dragStart = parseInt(slot.dataset.index);
+        hasMoved  = false;
+    });
+
+    slot.addEventListener('mouseenter', () => {
+        if (dragStart === null) return;
+        hasMoved = true;
+        previewRange(dragStart, parseInt(slot.dataset.index));
+    });
+});
+
+document.addEventListener('mouseup', () => {
+    if (dragStart === null) return;
+
+    if (hasMoved) {
+        // LẤY KHOẢNG TỪ CÁC Ô ĐANG ĐƯỢC HIGHLIGHT
+        const selected = Array.from(document.querySelectorAll('.time-slot.selected'));
+        if (selected.length > 0) {
+            const indices = selected.map(s => parseInt(s.dataset.index));
+            applySelection(Math.min(...indices), Math.max(...indices));
+        }
+        clickStart = null; // reset chế độ 2-click nếu đang dở
+    }
+
+    dragStart = null;
+});
+</script>
+
+{% endblock %}

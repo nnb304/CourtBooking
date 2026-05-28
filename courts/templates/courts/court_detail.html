@@ -84,8 +84,9 @@
                 Chủ sân: {{ court.owner.username }}
             </p>
 
-            <!-- NÚT ĐẶT SÂN (luồng đặt sân làm sau) -->
-            <a href="#" class="btn btn-success btn-lg w-100">Đặt sân ngay</a>
+            <!-- NÚT ĐẶT SÂN -->
+            <a href="{% url 'bookings:booking_create' court.pk %}"
+               class="btn btn-success btn-lg w-100">Đặt sân ngay</a>
 
         </div>
     </div>
