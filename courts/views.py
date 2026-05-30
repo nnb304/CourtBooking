@@ -1,6 +1,8 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
+from django.db.models import Avg, Count
 from .models import Court, Favorite
+from reviews.forms import ReviewForm
 
 
 def _get_favorited_ids(user):
@@ -12,7 +14,10 @@ def _get_favorited_ids(user):
 
 # TRANG CHỦ - DANH SÁCH SÂN NỔI BẬT (có tìm kiếm và lọc)
 def home_view(request):
-    courts = Court.objects.filter(is_active=True)
+    courts = Court.objects.filter(is_active=True).annotate(
+        avg_rating=Avg('reviews__rating'),
+        review_count=Count('reviews'),
+    )
 
     # ĐỌC THAM SỐ TÌM KIẾM / LỌC TỪ GET
     q          = request.GET.get('q', '').strip()
@@ -46,9 +51,28 @@ def home_view(request):
 # CHI TIẾT SÂN
 def court_detail_view(request, pk):
     court = get_object_or_404(Court, pk=pk)
+
+    # LẤY DANH SÁCH VÀ THỐNG KÊ ĐÁNH GIÁ
+    reviews_list  = court.reviews.select_related('user').all()
+    review_count  = reviews_list.count()
+    avg_data      = court.reviews.aggregate(a=Avg('rating'))
+    avg_rating    = avg_data['a']                            # None nếu chưa có đánh giá
+    avg_rounded   = round(avg_rating) if avg_rating else 0  # làm tròn để vẽ sao
+
+    # KIỂM TRA USER ĐÃ ĐÁNH GIÁ CHƯA
+    has_reviewed = False
+    if request.user.is_authenticated:
+        has_reviewed = court.reviews.filter(user=request.user).exists()
+
     context = {
         'court':         court,
         'favorited_ids': _get_favorited_ids(request.user),
+        'reviews_list':  reviews_list,
+        'review_count':  review_count,
+        'avg_rating':    avg_rating,
+        'avg_rounded':   avg_rounded,
+        'has_reviewed':  has_reviewed,
+        'review_form':   ReviewForm(),
     }
     return render(request, 'courts/court_detail.html', context)
 

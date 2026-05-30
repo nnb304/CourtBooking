@@ -91,5 +91,137 @@
         </div>
     </div>
 
+    <!-- ===== KHU VỰC ĐÁNH GIÁ ===== -->
+    <div class="row justify-content-center mt-5">
+        <div class="col-lg-8">
+            <h4 class="fw-bold mb-3">Đánh giá sân</h4>
+
+            <!-- ĐIỂM TRUNG BÌNH -->
+            {% if review_count > 0 %}
+            <div class="d-flex align-items-center gap-2 mb-4">
+                <span style="font-size: 2rem; font-weight: 700; color: #1b5e20;">
+                    {{ avg_rating|floatformat:1 }}
+                </span>
+                <div>
+                    <!-- SAO TRUNG BÌNH -->
+                    {% for i in "12345" %}
+                        {% if forloop.counter <= avg_rounded %}
+                            <i class="bi bi-star-fill text-warning"></i>
+                        {% else %}
+                            <i class="bi bi-star text-warning"></i>
+                        {% endif %}
+                    {% endfor %}
+                    <div class="text-muted small">{{ review_count }} đánh giá</div>
+                </div>
+            </div>
+            {% else %}
+            <p class="text-muted mb-4">Chưa có đánh giá nào. Hãy là người đầu tiên!</p>
+            {% endif %}
+
+            <!-- FORM GỬI ĐÁNH GIÁ -->
+            {% if user.is_authenticated %}
+                {% if has_reviewed %}
+                    <div class="alert alert-info">Bạn đã đánh giá sân này rồi.</div>
+                {% else %}
+                    <div class="card mb-4 border-0 shadow-sm">
+                        <div class="card-body">
+                            <h6 class="card-title mb-3">Gửi đánh giá của bạn</h6>
+                            <form method="POST" action="{% url 'reviews:add_review' court.pk %}" id="reviewForm">
+                                {% csrf_token %}
+                                {{ review_form.rating }}
+
+                                <!-- CHỌN SAO (1-5) -->
+                                <div class="mb-3" id="starWidget">
+                                    {% for i in "12345" %}
+                                    <i class="bi bi-star review-star"
+                                       data-value="{{ forloop.counter }}"
+                                       style="font-size: 2rem; cursor: pointer; color: #ccc; transition: color .15s;">
+                                    </i>
+                                    {% endfor %}
+                                    <span class="text-muted small ms-2" id="starLabel"></span>
+                                </div>
+
+                                <!-- NHẬN XÉT -->
+                                <div class="mb-3">
+                                    {{ review_form.comment }}
+                                </div>
+
+                                <button type="submit" class="btn btn-success" id="submitReviewBtn" disabled>
+                                    Gửi đánh giá
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                {% endif %}
+            {% else %}
+                <p class="text-muted mb-4">
+                    <a href="{% url 'accounts:login' %}?next={{ request.path }}">Đăng nhập</a> để gửi đánh giá.
+                </p>
+            {% endif %}
+
+            <!-- DANH SÁCH ĐÁNH GIÁ -->
+            {% for rv in reviews_list %}
+            <div class="border-bottom pb-3 mb-3">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <span class="fw-semibold">{{ rv.user.username }}</span>
+                        <span class="ms-2">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= rv.rating %}
+                                    <i class="bi bi-star-fill text-warning small"></i>
+                                {% else %}
+                                    <i class="bi bi-star text-muted small"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </span>
+                    </div>
+                    <span class="text-muted small">{{ rv.created_at|date:"d/m/Y" }}</span>
+                </div>
+                {% if rv.comment %}
+                    <p class="mt-1 mb-0 text-secondary">{{ rv.comment }}</p>
+                {% endif %}
+            </div>
+            {% empty %}
+            <!-- Không có đánh giá nào — đã hiện thông báo ở trên -->
+            {% endfor %}
+
+        </div>
+    </div>
+
 </div>
+
+<!-- JS CHỌN SAO CHO FORM ĐÁNH GIÁ -->
+<script>
+(function () {
+    const stars      = document.querySelectorAll('.review-star');
+    const ratingInput = document.getElementById('id_rating');
+    const submitBtn  = document.getElementById('submitReviewBtn');
+    const starLabel  = document.getElementById('starLabel');
+    const labels     = ['', 'Tệ', 'Không tốt', 'Bình thường', 'Tốt', 'Xuất sắc'];
+
+    if (!stars.length) return;   // form không hiển thị (đã review hoặc chưa đăng nhập)
+
+    function paintStars(value) {
+        stars.forEach(s => {
+            s.classList.toggle('bi-star-fill', +s.dataset.value <= value);
+            s.classList.toggle('bi-star',      +s.dataset.value >  value);
+            s.style.color = +s.dataset.value <= value ? '#ffc107' : '#ccc';
+        });
+    }
+
+    stars.forEach(s => {
+        // HOVER
+        s.addEventListener('mouseenter', () => paintStars(+s.dataset.value));
+        // RESET KHI RỜI WIDGET
+        s.addEventListener('mouseleave', () => paintStars(+ratingInput.value || 0));
+        // CLICK — chọn điểm
+        s.addEventListener('click', () => {
+            ratingInput.value  = s.dataset.value;
+            starLabel.textContent = labels[s.dataset.value];
+            paintStars(+s.dataset.value);
+            submitBtn.disabled = false;
+        });
+    });
+})();
+</script>
 {% endblock %}

@@ -145,8 +145,19 @@
                         </p>
 
                         <!-- GIÁ THUÊ -->
-                        <p class="fw-semibold text-success mb-3">
+                        <p class="fw-semibold text-success mb-2">
                             {{ court.price_per_hour|intcomma }}đ / giờ
+                        </p>
+
+                        <!-- ĐÁNH GIÁ TRUNG BÌNH -->
+                        <p class="mb-3 small">
+                            {% if court.review_count %}
+                                <i class="bi bi-star-fill text-warning"></i>
+                                <span class="fw-semibold">{{ court.avg_rating|floatformat:1 }}</span>
+                                <span class="text-muted">({{ court.review_count }} lượt)</span>
+                            {% else %}
+                                <span class="text-muted">Chưa có đánh giá</span>
+                            {% endif %}
                         </p>
 
                         <!-- NÚT XEM CHI TIẾT -->
