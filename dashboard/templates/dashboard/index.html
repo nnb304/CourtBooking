@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Dashboard Quản trị — CourtBooking{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+
+    <h2 class="fw-bold mb-4">
+        <i class="bi bi-speedometer2 me-2 text-success"></i>Dashboard Quản trị
+    </h2>
+
+    <!-- ROW 1: 4 KPI CARD -->
+    <div class="row g-3 mb-4">
+
+        <!-- DOANH THU HÔM NAY -->
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #1b5e20 !important;">
+                <div class="card-body">
+                    <div class="text-muted small mb-1">Doanh thu hôm nay</div>
+                    <div class="fw-bold fs-5" style="color:#1b5e20;">
+                        {{ revenue_today|intcomma }}đ
+                    </div>
+                    <div class="text-muted small mt-1">
+                        <i class="bi bi-calendar-day me-1"></i>{{ count_today }} đơn
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DOANH THU THÁNG -->
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #2e7d32 !important;">
+                <div class="card-body">
+                    <div class="text-muted small mb-1">Doanh thu tháng này</div>
+                    <div class="fw-bold fs-5" style="color:#2e7d32;">
+                        {{ revenue_month|intcomma }}đ
+                    </div>
+                    <div class="text-muted small mt-1">
+                        <i class="bi bi-calendar-month me-1"></i>{{ count_month }} đơn
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOOKING TUẦN -->
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #43a047 !important;">
+                <div class="card-body">
+                    <div class="text-muted small mb-1">Đơn xác nhận tuần này</div>
+                    <div class="fw-bold fs-5" style="color:#43a047;">{{ count_week }}</div>
+                    <div class="text-muted small mt-1">
+                        <i class="bi bi-calendar-week me-1"></i>Từ thứ Hai
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOOKING THÁNG -->
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #66bb6a !important;">
+                <div class="card-body">
+                    <div class="text-muted small mb-1">Đơn xác nhận tháng này</div>
+                    <div class="fw-bold fs-5" style="color:#66bb6a;">{{ count_month }}</div>
+                    <div class="text-muted small mt-1">
+                        <i class="bi bi-bar-chart me-1"></i>Tháng hiện tại
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ROW 2: BIỂU ĐỒ + TOP 3 SÂN -->
+    <div class="row g-3 mb-4">
+
+        <!-- BIỂU ĐỒ DOANH THU 7 NGÀY -->
+        <div class="col-12 col-md-8">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header fw-semibold" style="background:#e8f5e9; color:#1b5e20;">
+                    <i class="bi bi-graph-up me-1"></i>Doanh thu 7 ngày gần nhất
+                </div>
+                <div class="card-body">
+                    <canvas id="revenueChart" height="120"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- TOP 3 SÂN ĐƯỢC ĐẶT NHIỀU NHẤT -->
+        <div class="col-12 col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header fw-semibold" style="background:#e8f5e9; color:#1b5e20;">
+                    <i class="bi bi-trophy me-1"></i>Top 3 sân nổi bật
+                </div>
+                <div class="card-body p-0">
+                    {% if top_courts %}
+                        <ul class="list-group list-group-flush">
+                            {% for court in top_courts %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="fw-semibold">{{ court.name }}</div>
+                                    <div class="text-muted small">{{ court.get_court_type_display }}</div>
+                                </div>
+                                <span class="badge rounded-pill" style="background:#1b5e20;">
+                                    {{ court.num_bookings }} đơn
+                                </span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted p-3 mb-0">Chưa có dữ liệu.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ROW 3: BẢNG 10 BOOKING GẦN NHẤT -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header fw-semibold" style="background:#e8f5e9; color:#1b5e20;">
+            <i class="bi bi-list-check me-1"></i>10 đơn đặt sân gần nhất
+        </div>
+        <div class="card-body p-0">
+            {% if recent_bookings %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover align-middle mb-0">
+                        <thead class="table-success">
+                            <tr>
+                                <th>Sân</th>
+                                <th>Khách</th>
+                                <th>Ngày đặt</th>
+                                <th>Tổng tiền</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for booking in recent_bookings %}
+                            <tr>
+                                <td class="fw-semibold">{{ booking.court.name }}</td>
+                                <td>{{ booking.user.username }}</td>
+                                <td>{{ booking.created_at|date:"d/m/Y H:i" }}</td>
+                                <td style="color:#1b5e20;">{{ booking.total_price|intcomma }}đ</td>
+                                <td>
+                                    {% if booking.status == 'confirmed' %}
+                                        <span class="badge bg-success">Đã xác nhận</span>
+                                    {% elif booking.status == 'pending' %}
+                                        <span class="badge bg-warning text-dark">Chờ thanh toán</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Đã huỷ</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted p-3 mb-0">Chưa có đơn đặt sân nào.</p>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
+<!-- DỮ LIỆU CHART (truyền qua json_script để tránh XSS) -->
+{{ chart_data|json_script:"chart-data" }}
+
+<!-- CHART.JS CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- VẼ BIỂU ĐỒ -->
+<script>
+(function () {
+    const raw     = JSON.parse(document.getElementById('chart-data').textContent);
+    const labels  = raw.map(d => d.date);
+    const values  = raw.map(d => d.revenue);
+
+    new Chart(document.getElementById('revenueChart'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Doanh thu (đ)',
+                data: values,
+                backgroundColor: 'rgba(27,94,32,0.75)',
+                borderColor: '#1b5e20',
+                borderWidth: 1,
+                borderRadius: 4,
+            }],
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => ctx.parsed.y.toLocaleString('vi-VN') + 'đ',
+                    },
+                },
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: v => v.toLocaleString('vi-VN') + 'đ',
+                    },
+                },
+            },
+        },
+    });
+})();
+</script>
+
+{% endblock %}

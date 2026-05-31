@@ -26,6 +26,14 @@
         <div class="collapse navbar-collapse" id="navbarMain">
             <ul class="navbar-nav ms-auto">
                 {% if user.is_authenticated %}
+                    <!-- LINK DASHBOARD CHỈ HIỆN VỚI ADMIN -->
+                    {% if request.session.role == 'admin' %}
+                    <li class="nav-item">
+                        <a class="nav-link fw-semibold" href="{% url 'dashboard:index' %}">
+                            <i class="bi bi-speedometer2 me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    {% endif %}
                     <!-- Người dùng đã đăng nhập -->
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'courts:favorite_list' %}">

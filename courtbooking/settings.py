@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'payments',
     'reviews',
     'promotions',
+    'dashboard',
     # TIỆN ÍCH DJANGO (format số, ngày tháng)
     'django.contrib.humanize',
 ]
