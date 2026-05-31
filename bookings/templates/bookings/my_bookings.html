@@ -8,16 +8,7 @@
 
     <h2 class="fw-bold mb-4">Đơn đặt sân của tôi</h2>
 
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        {% endfor %}
-    {% endif %}
-
-    {% if bookings %}
+    {% if page_obj %}
         <div class="table-responsive">
             <table class="table table-hover align-middle">
                 <thead class="table-success">
@@ -28,10 +19,11 @@
                         <th>Số giờ</th>
                         <th>Tổng tiền</th>
                         <th>Trạng thái</th>
+                        <th>Thao tác</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for booking in bookings %}
+                    {% for booking in page_obj %}
                     <tr>
                         <td>
                             <a href="{% url 'courts:court_detail' booking.court.pk %}"
@@ -45,16 +37,32 @@
                             {{ booking.end_time|time:"H:i" }}
                         </td>
                         <td>{{ booking.duration_hours }} giờ</td>
-                        <td class="fw-semibold" style="color: #1b5e20;">
-                            {{ booking.total_price|intcomma }}đ
+                        <td style="color: #1b5e20;">
+                            <span class="fw-semibold">{{ booking.total_price|intcomma }}đ</span>
+                            {% if booking.promotion %}
+                            <div class="small mt-1" style="color:#2e7d32;">
+                                Đã áp mã {{ booking.promotion.code }}
+                                (-{{ booking.discount_amount|intcomma }}đ)
+                            </div>
+                            {% endif %}
                         </td>
                         <td>
                             {% if booking.status == 'confirmed' %}
                                 <span class="badge bg-success">Đã xác nhận</span>
                             {% elif booking.status == 'pending' %}
-                                <span class="badge bg-warning text-dark">Chờ duyệt</span>
+                                <span class="badge bg-warning text-dark">Chờ thanh toán</span>
                             {% else %}
                                 <span class="badge bg-secondary">Đã huỷ</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if booking.status == 'pending' %}
+                                <a href="{% url 'payments:payment_process' booking.pk %}"
+                                   class="btn btn-success btn-sm">
+                                    <i class="bi bi-credit-card me-1"></i>Thanh toán
+                                </a>
+                            {% else %}
+                                —
                             {% endif %}
                         </td>
                     </tr>
@@ -63,11 +71,34 @@
             </table>
         </div>
 
+        <!-- PHÂN TRANG -->
+        {% if page_obj.has_other_pages %}
+        <nav class="mt-3">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">&laquo; Trước</a>
+                </li>
+                {% endif %}
+                {% for num in page_obj.paginator.page_range %}
+                <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
+                {% endfor %}
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Sau &raquo;</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
     {% else %}
         <!-- CHƯA CÓ ĐƠN NÀO -->
         <div class="text-center py-5">
             <p class="text-muted mb-3">Bạn chưa có đơn đặt sân nào.</p>
-            <a href="{% url 'courts:home' %}" class="btn btn-success">Tìm sân ngay</a>
+            <a href="{% url 'courts:court_list' %}" class="btn btn-success">Tìm sân ngay</a>
         </div>
     {% endif %}
 

@@ -5,7 +5,7 @@ from django.db import models
 
 
 # MODEL MÃ KHUYẾN MẠI
-class PromoCode(models.Model):
+class Promotion(models.Model):
     DISCOUNT_TYPE_CHOICES = [
         ('percent', 'Giảm theo %'),
         ('flat',    'Giảm số tiền cố định (VND)'),

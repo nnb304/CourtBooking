@@ -27,7 +27,7 @@
 <section id="ds-san" class="container my-5">
 
     <!-- FORM TÌM KIẾM VÀ LỌC -->
-    <form method="GET" action="{% url 'courts:home' %}#ds-san" class="mb-4">
+    <form method="GET" action="{% url 'courts:court_list' %}#ds-san" class="mb-4">
         <div class="row g-2 align-items-end">
 
             <!-- TÌM THEO TÊN SÂN -->
@@ -73,7 +73,7 @@
             <!-- NÚT TÌM KIẾM VÀ XÓA LỌC -->
             <div class="col-6 col-md-3 d-flex gap-2">
                 <button type="submit" class="btn btn-success flex-grow-1">Tìm kiếm</button>
-                <a href="{% url 'courts:home' %}" class="btn btn-outline-secondary">Xóa lọc</a>
+                <a href="{% url 'courts:court_list' %}" class="btn btn-outline-secondary">Xóa lọc</a>
             </div>
 
         </div>
@@ -81,9 +81,9 @@
 
     <h2 class="fw-bold mb-4">Sân nổi bật</h2>
 
-    {% if courts %}
+    {% if page_obj %}
         <div class="row g-4">
-            {% for court in courts %}
+            {% for court in page_obj %}
             <div class="col-12 col-md-6">
                 <div class="card h-100 shadow-sm border-0">
 
@@ -168,6 +168,33 @@
             </div>
             {% endfor %}
         </div>
+
+        <!-- PHÂN TRANG -->
+        {% if page_obj.has_other_pages %}
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ q }}&court_type={{ court_type }}&district={{ district }}&price_max={{ price_max }}">
+                        &laquo; Trước
+                    </a>
+                </li>
+                {% endif %}
+                {% for num in page_obj.paginator.page_range %}
+                <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                    <a class="page-link" href="?page={{ num }}&q={{ q }}&court_type={{ court_type }}&district={{ district }}&price_max={{ price_max }}">{{ num }}</a>
+                </li>
+                {% endfor %}
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ q }}&court_type={{ court_type }}&district={{ district }}&price_max={{ price_max }}">
+                        Sau &raquo;
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
 
     {% else %}
         <!-- KHÔNG TÌM THẤY KẾT QUẢ -->

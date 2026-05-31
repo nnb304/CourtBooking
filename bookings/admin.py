@@ -6,6 +6,6 @@ from .models import Booking
 @admin.register(Booking)
 class BookingAdmin(admin.ModelAdmin):
     list_display  = ['court', 'user', 'date', 'start_time', 'duration_hours',
-                      'promo_code', 'discount_amount', 'total_price', 'status']
+                      'promotion', 'discount_amount', 'total_price', 'status']
     list_filter   = ['status', 'date']
     search_fields = ['court__name', 'user__email']

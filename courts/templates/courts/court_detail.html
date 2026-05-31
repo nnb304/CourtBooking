@@ -7,7 +7,7 @@
 <div class="container my-4">
 
     <!-- NÚT QUAY LẠI -->
-    <a href="{% url 'courts:home' %}" class="btn btn-outline-secondary btn-sm mb-4">
+    <a href="{% url 'courts:court_list' %}" class="btn btn-outline-secondary btn-sm mb-4">
         ← Quay lại danh sách
     </a>
 
@@ -126,7 +126,7 @@
                     <div class="card mb-4 border-0 shadow-sm">
                         <div class="card-body">
                             <h6 class="card-title mb-3">Gửi đánh giá của bạn</h6>
-                            <form method="POST" action="{% url 'reviews:add_review' court.pk %}" id="reviewForm">
+                            <form method="POST" action="{% url 'reviews:review_create' court.pk %}" id="reviewForm">
                                 {% csrf_token %}
                                 {{ review_form.rating }}
 

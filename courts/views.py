@@ -1,8 +1,11 @@
-from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.db.models import Avg, Count
-from .models import Court, Favorite
+from django.shortcuts import get_object_or_404, redirect, render
+
 from reviews.forms import ReviewForm
+
+from .models import Court, Favorite
 
 
 def _get_favorited_ids(user):
@@ -12,9 +15,9 @@ def _get_favorited_ids(user):
     return []
 
 
-# TRANG CHỦ - DANH SÁCH SÂN NỔI BẬT (có tìm kiếm và lọc)
-def home_view(request):
-    courts = Court.objects.filter(is_active=True).annotate(
+# TRANG CHỦ - DANH SÁCH SÂN (có tìm kiếm, lọc và phân trang)
+def court_list(request):
+    courts_qs = Court.objects.filter(is_active=True).annotate(
         avg_rating=Avg('reviews__rating'),
         review_count=Count('reviews'),
     )
@@ -27,20 +30,25 @@ def home_view(request):
 
     # ÁP FILTER THEO TỪNG THAM SỐ NẾU CÓ GIÁ TRỊ
     if q:
-        courts = courts.filter(name__icontains=q)
+        courts_qs = courts_qs.filter(name__icontains=q)
     if court_type:
-        courts = courts.filter(court_type=court_type)
+        courts_qs = courts_qs.filter(court_type=court_type)
     if district:
-        courts = courts.filter(district=district)
+        courts_qs = courts_qs.filter(district=district)
     if price_max:
-        courts = courts.filter(price_per_hour__lte=price_max)
+        courts_qs = courts_qs.filter(price_per_hour__lte=price_max)
+
+    # PHÂN TRANG
+    paginator   = Paginator(courts_qs, 10)
+    page_number = request.GET.get('page')
+    page_obj    = paginator.get_page(page_number)
 
     context = {
-        'courts':       courts,
-        'q':            q,
-        'court_type':   court_type,
-        'district':     district,
-        'price_max':    price_max,
+        'page_obj':           page_obj,
+        'q':                  q,
+        'court_type':         court_type,
+        'district':           district,
+        'price_max':          price_max,
         'court_type_choices': Court.COURT_TYPE_CHOICES,
         'district_choices':   Court.DISTRICT_CHOICES,
         'favorited_ids':      _get_favorited_ids(request.user),
@@ -49,15 +57,15 @@ def home_view(request):
 
 
 # CHI TIẾT SÂN
-def court_detail_view(request, pk):
+def court_detail(request, pk):
     court = get_object_or_404(Court, pk=pk)
 
     # LẤY DANH SÁCH VÀ THỐNG KÊ ĐÁNH GIÁ
-    reviews_list  = court.reviews.select_related('user').all()
-    review_count  = reviews_list.count()
-    avg_data      = court.reviews.aggregate(a=Avg('rating'))
-    avg_rating    = avg_data['a']                            # None nếu chưa có đánh giá
-    avg_rounded   = round(avg_rating) if avg_rating else 0  # làm tròn để vẽ sao
+    reviews_list = court.reviews.select_related('user').all()
+    review_count = reviews_list.count()
+    avg_data     = court.reviews.aggregate(a=Avg('rating'))
+    avg_rating   = avg_data['a']
+    avg_rounded  = round(avg_rating) if avg_rating else 0
 
     # KIỂM TRA USER ĐÃ ĐÁNH GIÁ CHƯA
     has_reviewed = False
@@ -84,19 +92,19 @@ def toggle_favorite_view(request, pk):
         court = get_object_or_404(Court, pk=pk)
         fav = Favorite.objects.filter(user=request.user, court=court)
         if fav.exists():
-            fav.delete()   # đã thích -> bỏ thích
+            fav.delete()   # đã thích → bỏ thích
         else:
             Favorite.objects.create(user=request.user, court=court)
     # quay lại trang trước, hoặc về trang chủ nếu không có referer
     referer = request.META.get('HTTP_REFERER', '')
-    return redirect(referer if referer else 'courts:home')
+    return redirect(referer if referer else 'courts:court_list')
 
 
 # DANH SÁCH SÂN YÊU THÍCH CỦA USER
 @login_required
 def favorite_list_view(request):
-    favorites = Favorite.objects.filter(user=request.user).select_related('court')
-    courts = [fav.court for fav in favorites]
+    favorites    = Favorite.objects.filter(user=request.user).select_related('court')
+    courts       = [fav.court for fav in favorites]
     # tất cả sân trong trang này đều đã thích
     favorited_ids = [c.id for c in courts]
     context = {

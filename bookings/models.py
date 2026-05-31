@@ -30,8 +30,8 @@ class Booking(models.Model):
         verbose_name='Số giờ',
         validators=[MinValueValidator(1), MaxValueValidator(4)]
     )
-    promo_code      = models.ForeignKey(
-        'promotions.PromoCode',
+    promotion       = models.ForeignKey(
+        'promotions.Promotion',
         on_delete=models.SET_NULL,
         null=True, blank=True,
         verbose_name='Mã khuyến mãi'

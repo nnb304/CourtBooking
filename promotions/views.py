@@ -1,7 +1,8 @@
+from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 
-from .models import PromoCode
+from .models import Promotion
 
 
 def _fmt(n):
@@ -10,6 +11,7 @@ def _fmt(n):
 
 
 # VALIDATE MÃ KHUYẾN MẠI — NHẬN POST, TRẢ JSON
+@login_required
 @require_POST
 def validate_promo(request):
     code        = request.POST.get('code', '').strip()
@@ -22,8 +24,8 @@ def validate_promo(request):
 
     # TÌM MÃ (không phân biệt hoa/thường)
     try:
-        promo = PromoCode.objects.get(code__iexact=code)
-    except PromoCode.DoesNotExist:
+        promo = Promotion.objects.get(code__iexact=code)
+    except Promotion.DoesNotExist:
         return JsonResponse({'valid': False, 'message': f'Mã "{code}" không tồn tại.'})
 
     # KIỂM TRA CÒN HIỆU LỰC

@@ -51,10 +51,10 @@
     <!-- LƯỚI TIME SLOT -->
     <div id="slot-grid">
         {% for slot in slots_info %}
-            <div class="time-slot {% if slot.is_booked %}booked{% endif %}"
+            <div class="time-slot {% if slot.is_booked %}booked{% elif slot.is_past %}past{% endif %}"
                  data-index="{{ slot.index }}"
                  data-time="{{ slot.time_label }}"
-                 {% if slot.is_booked %}title="Đã có người đặt"{% endif %}>
+                 {% if slot.is_booked %}title="Đã có người đặt"{% elif slot.is_past %}title="Giờ đã qua"{% endif %}>
                 {{ slot.time_label }}
             </div>
         {% endfor %}
@@ -67,6 +67,46 @@
         </div>
     </div>
 
+    <!-- MÃ GIẢM GIÁ -->
+    <div class="mt-3">
+        <div class="card border-0 p-3" style="background:#fff8e1; border-radius:8px;">
+            <h6 class="fw-semibold mb-2">
+                <i class="bi bi-tag-fill me-1" style="color:#f57f17;"></i>Mã giảm giá
+            </h6>
+
+            <!-- Ô NHẬP MÃ + NÚT ÁP DỤNG -->
+            <div class="d-flex gap-2 mb-2">
+                <input type="text" id="promoInput" class="form-control form-control-sm"
+                       placeholder="VD: GIAM10, GIAM50K"
+                       style="max-width:220px; text-transform:uppercase;"
+                       autocomplete="off">
+                <button type="button" class="btn btn-warning btn-sm fw-semibold"
+                        onclick="applyPromo()">Áp dụng</button>
+            </div>
+
+            <!-- THÔNG BÁO KẾT QUẢ ÁP MÃ -->
+            <div id="promoAlert" class="py-2 small" style="display:none;"></div>
+
+            <!-- BẢNG TÓM TẮT GIÁ (ẩn khi chưa chọn time-slot) -->
+            <div id="priceSummary" class="mt-2 border-top pt-2" style="display:none;">
+                <div id="priceBaseRow" class="d-flex justify-content-between small text-muted mb-1" style="display:none;">
+                    <span>Tạm tính:</span>
+                    <span id="priceBase"></span>
+                </div>
+                <div id="promoDiscountRow" class="d-flex justify-content-between small mb-1"
+                     style="display:none;">
+                    <span class="text-success">Giảm giá:</span>
+                    <span class="text-success" id="priceDiscountAmt"></span>
+                </div>
+                <div class="d-flex justify-content-between fw-bold mt-1"
+                     style="color:#1b5e20; font-size:1.05rem;">
+                    <span>Thành tiền:</span>
+                    <span id="priceFinal"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- FORM ĐẶT SÂN (POST) — các field ẩn, JS điền giá trị -->
     <form method="POST" action="{% url 'bookings:booking_create' court.pk %}" class="mt-3">
         {% csrf_token %}
@@ -74,6 +114,7 @@
         <input type="hidden" name="date" id="id_date" value="{{ selected_date_str }}">
         <input type="hidden" name="start_time" id="id_start_time" value="">
         <input type="hidden" name="duration_hours" id="id_duration_hours" value="">
+        <input type="hidden" name="promotion" id="appliedPromotion" value="">
         <div class="d-grid">
             <button type="submit" id="submit-btn"
                     class="btn btn-lg fw-semibold text-white"
@@ -110,6 +151,12 @@
 }
 .time-slot.booked {
     background: #ffebee;
+    color: #bbb;
+    cursor: not-allowed;
+    text-decoration: line-through;
+}
+.time-slot.past {
+    background: #f5f5f5;
     color: #bbb;
     cursor: not-allowed;
     text-decoration: line-through;
@@ -151,6 +198,7 @@ function hideSummary() {
     submitBtn.disabled = true;
     inputStart.value = '';
     inputDur.value   = '';
+    resetPromoUI();
 }
 
 function previewRange(a, b) {
@@ -161,9 +209,13 @@ function previewRange(a, b) {
     }
 }
 
+function isDisabled(el) {
+    return el?.classList.contains('booked') || el?.classList.contains('past');
+}
+
 function hasBookedInRange(lo, hi) {
     for (let i = lo; i <= hi; i++) {
-        if (slotEl(i)?.classList.contains('booked')) return true;
+        if (isDisabled(slotEl(i))) return true;
     }
     return false;
 }
@@ -218,10 +270,13 @@ function applySelection(a, b) {
 
     // HIỂN THỊ TỔNG KẾT
     const total = PRICE_PER_HOUR * durationHrs;
+    currentOrderTotal = total;
     summaryTxt.textContent =
         `Đã chọn: ${startTime} – ${endTime} (${durationHrs} giờ) — Tổng tiền: ${total.toLocaleString('vi-VN')}đ`;
     summaryDiv.style.display = 'block';
     submitBtn.disabled = false;
+    resetPromoUI();
+    updatePriceSummary();
 
     return true;
 }
@@ -230,7 +285,7 @@ function applySelection(a, b) {
 
 allSlots.forEach(slot => {
     slot.addEventListener('click', () => {
-        if (slot.classList.contains('booked')) return;
+        if (slot.classList.contains('booked') || slot.classList.contains('past')) return;
         if (hasMoved) { hasMoved = false; return; } // drag đã xử lý
 
         const idx = parseInt(slot.dataset.index);
@@ -258,7 +313,7 @@ allSlots.forEach(slot => {
 
 allSlots.forEach(slot => {
     slot.addEventListener('mousedown', e => {
-        if (slot.classList.contains('booked')) return;
+        if (slot.classList.contains('booked') || slot.classList.contains('past')) return;
         e.preventDefault();
         dragStart = parseInt(slot.dataset.index);
         hasMoved  = false;
@@ -285,6 +340,103 @@ document.addEventListener('mouseup', () => {
     }
 
     dragStart = null;
+});
+</script>
+
+<!-- ===== JS MÃ GIẢM GIÁ ===== -->
+<script>
+let currentOrderTotal    = 0;
+let appliedPromoDiscount = 0;
+
+const promoInput        = document.getElementById('promoInput');
+const promoAlertEl      = document.getElementById('promoAlert');
+const priceSummaryDiv   = document.getElementById('priceSummary');
+const priceBaseEl       = document.getElementById('priceBase');
+const promoDiscountRow  = document.getElementById('promoDiscountRow');
+const priceBaseRow      = document.getElementById('priceBaseRow');
+const priceDiscountEl   = document.getElementById('priceDiscountAmt');
+const priceFinalEl      = document.getElementById('priceFinal');
+const appliedCodeInput  = document.getElementById('appliedPromotion');
+
+function fmtVND(n) {
+    return n.toLocaleString('vi-VN') + 'đ';
+}
+
+function updatePriceSummary() {
+    if (currentOrderTotal === 0) {
+        priceSummaryDiv.style.display = 'none';
+        return;
+    }
+    priceSummaryDiv.style.display = '';
+    priceBaseEl.textContent  = fmtVND(currentOrderTotal);
+    priceFinalEl.textContent = fmtVND(currentOrderTotal - appliedPromoDiscount);
+
+    // CHỈ HIỆN "TẠM TÍNH" VÀ "GIẢM GIÁ" KHI ĐÃ ÁP MÃ THÀNH CÔNG
+    if (appliedPromoDiscount > 0) {
+        priceBaseRow.style.display     = '';
+        promoDiscountRow.style.display = 'flex';
+        priceDiscountEl.textContent    = '-' + fmtVND(appliedPromoDiscount);
+    } else {
+        priceBaseRow.style.display     = 'none';
+        promoDiscountRow.style.display = 'none';
+    }
+}
+
+// RESET TRẠNG THÁI MÃ (gọi khi chọn lại slot hoặc huỷ chọn)
+function resetPromoUI() {
+    appliedPromoDiscount           = 0;
+    appliedCodeInput.value         = '';
+    promoAlertEl.style.display     = 'none';
+    promoDiscountRow.style.display = 'none';
+    updatePriceSummary();
+}
+
+function showPromoAlert(msg, success) {
+    promoAlertEl.className    = 'alert alert-' + (success ? 'success' : 'danger') + ' py-2 small mb-0';
+    promoAlertEl.textContent  = msg;
+    promoAlertEl.style.display = '';
+}
+
+// ÁP MÃ GIẢM GIÁ QUA FETCH POST
+async function applyPromo() {
+    const code = promoInput.value.trim().toUpperCase();
+    if (!code) return;
+
+    if (currentOrderTotal === 0) {
+        showPromoAlert('Vui lòng chọn giờ chơi trước khi áp mã.', false);
+        return;
+    }
+
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    try {
+        const resp = await fetch("{% url 'promotions:validate_promo' %}", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `csrfmiddlewaretoken=${encodeURIComponent(csrfToken)}&code=${encodeURIComponent(code)}&order_total=${currentOrderTotal}`,
+        });
+        const data = await resp.json();
+
+        if (data.valid) {
+            appliedPromoDiscount           = data.discount_amount;
+            appliedCodeInput.value         = code;
+            promoDiscountRow.style.display = 'flex';
+            priceDiscountEl.textContent    = '-' + fmtVND(data.discount_amount);
+            showPromoAlert(data.message, true);
+        } else {
+            appliedPromoDiscount           = 0;
+            appliedCodeInput.value         = '';
+            promoDiscountRow.style.display = 'none';
+            showPromoAlert(data.message, false);
+        }
+        updatePriceSummary();
+    } catch (e) {
+        showPromoAlert('Không thể kết nối. Vui lòng thử lại.', false);
+    }
+}
+
+// NHẤN ENTER TRONG Ô MÃ → ÁP DỤNG (không submit form chính)
+promoInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); applyPromo(); }
 });
 </script>
 

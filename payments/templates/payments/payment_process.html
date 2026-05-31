@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Thanh toán đơn đặt sân — CourtBooking{% endblock %}
+
+{% block content %}
+<div class="container my-5" style="max-width: 640px;">
+
+    <h2 class="fw-bold mb-4">
+        <i class="bi bi-credit-card me-2 text-success"></i>Thanh toán
+    </h2>
+
+    <!-- TÓM TẮT ĐƠN ĐẶT SÂN -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header fw-bold" style="background:#e8f5e9; color:#1b5e20;">
+            Thông tin đơn đặt sân
+        </div>
+        <div class="card-body">
+            <dl class="row mb-0">
+
+                <!-- TÊN SÂN -->
+                <dt class="col-sm-5">Sân</dt>
+                <dd class="col-sm-7">{{ booking.court.name }}</dd>
+
+                <!-- NGÀY ĐẶT -->
+                <dt class="col-sm-5">Ngày</dt>
+                <dd class="col-sm-7">{{ booking.date|date:"d/m/Y" }}</dd>
+
+                <!-- KHUNG GIỜ -->
+                <dt class="col-sm-5">Khung giờ</dt>
+                <dd class="col-sm-7">
+                    {{ booking.start_time|time:"H:i" }} –
+                    {{ booking.end_time|time:"H:i" }}
+                    ({{ booking.duration_hours }} giờ)
+                </dd>
+
+                <!-- GIÁ THUÊ -->
+                <dt class="col-sm-5">Giá</dt>
+                <dd class="col-sm-7">
+                    {% with base_price=booking.court.price_per_hour|floatformat:"0" %}
+                        {{ booking.court.price_per_hour|intcomma }}đ × {{ booking.duration_hours }} giờ
+                    {% endwith %}
+                </dd>
+
+                <!-- MÃ GIẢM GIÁ (nếu có) -->
+                {% if booking.promotion %}
+                <dt class="col-sm-5 text-success">Mã giảm giá</dt>
+                <dd class="col-sm-7 text-success">
+                    {{ booking.promotion.code }}
+                    (−{{ booking.discount_amount|intcomma }}đ)
+                </dd>
+                {% endif %}
+
+                <!-- TỔNG TIỀN -->
+                <dt class="col-sm-5 fw-bold" style="color:#1b5e20;">Tổng tiền</dt>
+                <dd class="col-sm-7 fw-bold fs-5" style="color:#1b5e20;">
+                    {{ booking.total_price|intcomma }}đ
+                </dd>
+
+            </dl>
+        </div>
+    </div>
+
+    <!-- FORM CHỌN PHƯƠNG THỨC THANH TOÁN -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header fw-bold" style="background:#e8f5e9; color:#1b5e20;">
+            Chọn phương thức thanh toán
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+
+                <!-- PHƯƠNG THỨC -->
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">Phương thức</label>
+                    {{ form.method }}
+                </div>
+
+                <!-- NÚT XÁC NHẬN -->
+                <div class="d-flex gap-2">
+                    <button type="submit"
+                            class="btn btn-success flex-grow-1 fw-semibold">
+                        <i class="bi bi-check-circle me-1"></i>Xác nhận thanh toán
+                    </button>
+                    <a href="{% url 'bookings:booking_list' %}"
+                       class="btn btn-outline-secondary">
+                        Huỷ
+                    </a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

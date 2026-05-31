@@ -8,7 +8,7 @@ from .forms import ReviewForm
 
 # GỬI ĐÁNH GIÁ SÂN
 @login_required
-def add_review(request, court_id):
+def review_create(request, court_id):
     court = get_object_or_404(Court, pk=court_id)
 
     # CHỈ NHẬN POST
