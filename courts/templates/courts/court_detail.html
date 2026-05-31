@@ -119,44 +119,50 @@
             {% endif %}
 
             <!-- FORM GỬI ĐÁNH GIÁ -->
-            {% if user.is_authenticated %}
-                {% if has_reviewed %}
-                    <div class="alert alert-info">Bạn đã đánh giá sân này rồi.</div>
-                {% else %}
-                    <div class="card mb-4 border-0 shadow-sm">
-                        <div class="card-body">
-                            <h6 class="card-title mb-3">Gửi đánh giá của bạn</h6>
-                            <form method="POST" action="{% url 'reviews:review_create' court.pk %}" id="reviewForm">
-                                {% csrf_token %}
-                                {{ review_form.rating }}
-
-                                <!-- CHỌN SAO (1-5) -->
-                                <div class="mb-3" id="starWidget">
-                                    {% for i in "12345" %}
-                                    <i class="bi bi-star review-star"
-                                       data-value="{{ forloop.counter }}"
-                                       style="font-size: 2rem; cursor: pointer; color: #ccc; transition: color .15s;">
-                                    </i>
-                                    {% endfor %}
-                                    <span class="text-muted small ms-2" id="starLabel"></span>
-                                </div>
-
-                                <!-- NHẬN XÉT -->
-                                <div class="mb-3">
-                                    {{ review_form.comment }}
-                                </div>
-
-                                <button type="submit" class="btn btn-success" id="submitReviewBtn" disabled>
-                                    Gửi đánh giá
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                {% endif %}
-            {% else %}
+            {% if not user.is_authenticated %}
+                <!-- CHƯA ĐĂNG NHẬP -->
                 <p class="text-muted mb-4">
-                    <a href="{% url 'accounts:login' %}?next={{ request.path }}">Đăng nhập</a> để gửi đánh giá.
+                    <a href="{% url 'accounts:login' %}?next={{ request.path }}">Đăng nhập để đánh giá</a>
                 </p>
+            {% elif not can_review %}
+                <!-- ĐÃ ĐĂNG NHẬP NHƯNG CHƯA ĐẶT SÂN THÀNH CÔNG -->
+                <p class="text-muted mb-4">
+                    <i class="bi bi-lock me-1"></i>Bạn cần đặt và thanh toán sân này trước khi đánh giá.
+                </p>
+            {% elif has_reviewed %}
+                <!-- ĐÃ ĐÁNH GIÁ RỒI -->
+                <div class="alert alert-info">Bạn đã đánh giá sân này rồi.</div>
+            {% else %}
+                <!-- CÓ QUYỀN VÀ CHƯA ĐÁNH GIÁ — HIỆN FORM -->
+                <div class="card mb-4 border-0 shadow-sm">
+                    <div class="card-body">
+                        <h6 class="card-title mb-3">Gửi đánh giá của bạn</h6>
+                        <form method="POST" action="{% url 'reviews:review_create' court.pk %}" id="reviewForm">
+                            {% csrf_token %}
+                            {{ review_form.rating }}
+
+                            <!-- CHỌN SAO (1-5) -->
+                            <div class="mb-3" id="starWidget">
+                                {% for i in "12345" %}
+                                <i class="bi bi-star review-star"
+                                   data-value="{{ forloop.counter }}"
+                                   style="font-size: 2rem; cursor: pointer; color: #ccc; transition: color .15s;">
+                                </i>
+                                {% endfor %}
+                                <span class="text-muted small ms-2" id="starLabel"></span>
+                            </div>
+
+                            <!-- NHẬN XÉT -->
+                            <div class="mb-3">
+                                {{ review_form.comment }}
+                            </div>
+
+                            <button type="submit" class="btn btn-success" id="submitReviewBtn" disabled>
+                                Gửi đánh giá
+                            </button>
+                        </form>
+                    </div>
+                </div>
             {% endif %}
 
             <!-- DANH SÁCH ĐÁNH GIÁ -->

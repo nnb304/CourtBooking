@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Duyệt sân chờ phê duyệt — CourtBooking{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+
+    <h2 class="fw-bold mb-4">
+        <i class="bi bi-clipboard-check me-2 text-success"></i>Duyệt sân chờ phê duyệt
+    </h2>
+
+    {% if page_obj %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-success">
+                    <tr>
+                        <th style="width:80px;">Ảnh</th>
+                        <th>Tên sân</th>
+                        <th>Loại sân</th>
+                        <th>Chủ sân</th>
+                        <th>Địa chỉ</th>
+                        <th>Giá / giờ</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for court in page_obj %}
+                    <tr>
+                        <!-- ẢNH THUMBNAIL -->
+                        <td>
+                            {% if court.image %}
+                                <img src="{{ court.image.url }}"
+                                     alt="{{ court.name }}"
+                                     style="width:70px; height:50px; object-fit:cover; border-radius:4px;">
+                            {% else %}
+                                <div class="d-flex align-items-center justify-content-center"
+                                     style="width:70px; height:50px; background:#c8e6c9; border-radius:4px; font-size:24px;">
+                                    {% if court.court_type == 'badminton' %}🏸
+                                    {% elif court.court_type == 'football' %}⚽
+                                    {% elif court.court_type == 'pickleball' %}🏓
+                                    {% elif court.court_type == 'basketball' %}🏀
+                                    {% elif court.court_type == 'tennis' %}🎾
+                                    {% else %}🏟️{% endif %}
+                                </div>
+                            {% endif %}
+                        </td>
+
+                        <td class="fw-semibold">{{ court.name }}</td>
+                        <td>{{ court.get_court_type_display }}</td>
+
+                        <!-- CHỦ SÂN (phòng trường hợp owner null) -->
+                        <td>{{ court.owner.username|default:"(không có chủ)" }}</td>
+
+                        <td class="text-muted small">{{ court.address }}</td>
+                        <td style="color:#1b5e20;">{{ court.price_per_hour|intcomma }}đ</td>
+
+                        <!-- HÀNH ĐỘNG: NÚT DUYỆT + TỪ CHỐI -->
+                        <td>
+                            <!-- DUYỆT: POST trực tiếp, không cần confirm -->
+                            <form method="POST"
+                                  action="{% url 'courts:court_approve' court.pk %}"
+                                  class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success btn-sm me-1">
+                                    <i class="bi bi-check-lg"></i> Duyệt
+                                </button>
+                            </form>
+
+                            <!-- TỪ CHỐI: link GET sang trang confirm -->
+                            <a href="{% url 'courts:court_reject' court.pk %}"
+                               class="btn btn-danger btn-sm">
+                                <i class="bi bi-x-lg"></i> Từ chối
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- PHÂN TRANG -->
+        {% if page_obj.has_other_pages %}
+        <nav class="mt-3">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">&laquo; Trước</a>
+                </li>
+                {% endif %}
+                {% for num in page_obj.paginator.page_range %}
+                <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
+                {% endfor %}
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Sau &raquo;</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+    {% else %}
+        <!-- EMPTY STATE -->
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-1"></i>Không có sân nào chờ duyệt.
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

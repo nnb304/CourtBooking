@@ -35,9 +35,11 @@ class Court(models.Model):
     is_active      = models.BooleanField(default=True, verbose_name='Đang hoạt động')
     owner          = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='courts',
-        verbose_name='Chủ sân'
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='owned_courts',
+        verbose_name='Chủ sân',
     )
     created_at     = models.DateTimeField(auto_now_add=True, verbose_name='Ngày tạo')
 

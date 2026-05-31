@@ -25,6 +25,9 @@ def register_view(request):
 # ĐĂNG NHẬP
 def login_view(request):
     if request.user.is_authenticated:
+        # ĐẢM BẢO SESSION LUÔN CÓ ROLE (phòng trường hợp login qua /admin/ hoặc session cũ)
+        if not request.session.get('role'):
+            request.session['role'] = request.user.role
         return redirect('courts:court_list')
 
     if request.method == 'POST':

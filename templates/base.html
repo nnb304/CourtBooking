@@ -26,11 +26,24 @@
         <div class="collapse navbar-collapse" id="navbarMain">
             <ul class="navbar-nav ms-auto">
                 {% if user.is_authenticated %}
-                    <!-- LINK DASHBOARD CHỈ HIỆN VỚI ADMIN -->
+                    <!-- LINK ADMIN: DASHBOARD VÀ DUYỆT SÂN -->
                     {% if request.session.role == 'admin' %}
                     <li class="nav-item">
                         <a class="nav-link fw-semibold" href="{% url 'dashboard:index' %}">
                             <i class="bi bi-speedometer2 me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link fw-semibold" href="{% url 'courts:court_pending_list' %}">
+                            <i class="bi bi-clipboard-check me-1"></i>Duyệt sân
+                        </a>
+                    </li>
+                    {% endif %}
+                    <!-- LINK SÂN CỦA TÔI CHỈ HIỆN VỚI OWNER -->
+                    {% if request.session.role == 'owner' %}
+                    <li class="nav-item">
+                        <a class="nav-link fw-semibold" href="{% url 'courts:my_court_list' %}">
+                            <i class="bi bi-building me-1"></i>Sân của tôi
                         </a>
                     </li>
                     {% endif %}

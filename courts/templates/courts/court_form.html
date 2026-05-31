@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ action_text }} — CourtBooking{% endblock %}
+
+{% block content %}
+<div class="container my-4" style="max-width: 680px;">
+
+    <!-- TIÊU ĐỀ -->
+    <h2 class="fw-bold mb-4">{{ action_text }}</h2>
+
+    <!-- FORM ĐĂNG / CHỈNH SÂN -->
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- HIỂN THỊ LỖI TOÀN FORM (nếu có) -->
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                {% for error in form.non_field_errors %}
+                    <div>{{ error }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- CÁC FIELD FORM -->
+        {{ form.as_p }}
+
+        <!-- NÚT LƯU VÀ HỦY -->
+        <div class="d-flex gap-2 mt-3">
+            <button type="submit" class="btn btn-primary flex-grow-1">
+                <i class="bi bi-check-circle me-1"></i>Lưu
+            </button>
+            <a href="{% url 'courts:my_court_list' %}" class="btn btn-outline-secondary">
+                Hủy
+            </a>
+        </div>
+
+    </form>
+
+</div>
+{% endblock %}

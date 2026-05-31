@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}Xác nhận xóa sân — CourtBooking{% endblock %}
+
+{% block content %}
+<div class="container my-5" style="max-width: 520px;">
+
+    <!-- CẢNH BÁO XÓA SÂN -->
+    <div class="card border-danger shadow-sm">
+        <div class="card-header bg-danger text-white fw-bold">
+            <i class="bi bi-exclamation-triangle me-1"></i>Xác nhận xóa sân
+        </div>
+        <div class="card-body">
+            <p class="mb-3">
+                Bạn có chắc muốn xóa sân
+                <strong>"{{ court.name }}"</strong> không?
+                Hành động này <span class="text-danger fw-semibold">không thể hoàn tác</span>.
+            </p>
+
+            <!-- FORM XÁC NHẬN XÓA -->
+            <form method="POST">
+                {% csrf_token %}
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-danger flex-grow-1">
+                        <i class="bi bi-trash me-1"></i>Xóa
+                    </button>
+                    <a href="{% url 'courts:my_court_list' %}"
+                       class="btn btn-outline-secondary flex-grow-1">
+                        Hủy
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
