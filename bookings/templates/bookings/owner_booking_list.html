@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Booking sân của tôi — CourtBooking{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+
+    <h3 class="fw-bold mb-4">Booking các sân của tôi</h3>
+
+    <!-- FILTER BAR TRẠNG THÁI -->
+    <div class="mb-3">
+        <div class="btn-group" role="group">
+            <a href="{% url 'bookings:owner_booking_list' %}"
+               class="btn {% if current_status == '' %}btn-success{% else %}btn-outline-success{% endif %}">
+                Tất cả
+            </a>
+            <a href="{% url 'bookings:owner_booking_list' %}?status=pending"
+               class="btn {% if current_status == 'pending' %}btn-warning{% else %}btn-outline-warning{% endif %}">
+                Chờ TT
+            </a>
+            <a href="{% url 'bookings:owner_booking_list' %}?status=confirmed"
+               class="btn {% if current_status == 'confirmed' %}btn-success{% else %}btn-outline-success{% endif %}">
+                Đã xác nhận
+            </a>
+            <a href="{% url 'bookings:owner_booking_list' %}?status=cancelled"
+               class="btn {% if current_status == 'cancelled' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">
+                Đã hủy
+            </a>
+        </div>
+    </div>
+
+    {% if page_obj %}
+        <!-- BẢNG DANH SÁCH BOOKING -->
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle">
+                <thead class="table-success">
+                    <tr>
+                        <th>#</th>
+                        <th>Sân</th>
+                        <th>Khách</th>
+                        <th>Ngày</th>
+                        <th>Khung giờ</th>
+                        <th>Tổng tiền</th>
+                        <th>Trạng thái</th>
+                        <th>Tạo lúc</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for booking in page_obj %}
+                    <tr>
+                        <!-- STT THEO PAGINATOR -->
+                        <td class="text-muted small">
+                            {{ page_obj.start_index|add:forloop.counter0 }}
+                        </td>
+
+                        <!-- TÊN SÂN -->
+                        <td class="fw-semibold">{{ booking.court.name }}</td>
+
+                        <!-- KHÁCH: USERNAME + PHONE NẾU CÓ -->
+                        <td>
+                            {{ booking.user.username }}
+                            {% if booking.user.phone %}
+                                <div class="text-muted small">{{ booking.user.phone }}</div>
+                            {% endif %}
+                        </td>
+
+                        <!-- NGÀY ĐẶT -->
+                        <td>{{ booking.date|date:"d/m/Y" }}</td>
+
+                        <!-- KHUNG GIỜ -->
+                        <td class="text-nowrap">
+                            {{ booking.start_time|time:"H:i" }}
+                            –
+                            {{ booking.end_time|time:"H:i" }}
+                        </td>
+
+                        <!-- TỔNG TIỀN -->
+                        <td style="color:#1b5e20;" class="fw-semibold">
+                            {{ booking.total_price|intcomma }}đ
+                        </td>
+
+                        <!-- BADGE TRẠNG THÁI -->
+                        <td>
+                            {% if booking.status == 'confirmed' %}
+                                <span class="badge bg-success">Đã xác nhận</span>
+                            {% elif booking.status == 'pending' %}
+                                <span class="badge bg-warning text-dark">Chờ thanh toán</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Đã hủy</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- THỜI GIAN TẠO -->
+                        <td class="text-muted small text-nowrap">
+                            {{ booking.created_at|date:"d/m/Y H:i" }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- PHÂN TRANG (giữ nguyên ?status nếu có) -->
+        {% if page_obj.has_other_pages %}
+        <nav class="mt-3">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link"
+                       href="?page={{ page_obj.previous_page_number }}{% if current_status %}&status={{ current_status }}{% endif %}">
+                        &laquo; Trước
+                    </a>
+                </li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                    <a class="page-link"
+                       href="?page={{ num }}{% if current_status %}&status={{ current_status }}{% endif %}">
+                        {{ num }}
+                    </a>
+                </li>
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link"
+                       href="?page={{ page_obj.next_page_number }}{% if current_status %}&status={{ current_status }}{% endif %}">
+                        Sau &raquo;
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+    {% else %}
+        <!-- EMPTY STATE -->
+        <div class="text-center py-5">
+            <div class="card border-0 shadow-sm d-inline-block px-5 py-4">
+                <i class="bi bi-calendar-x" style="font-size: 3rem; color: #a5d6a7;"></i>
+                <p class="fw-semibold mt-3 mb-1">Chưa có booking nào</p>
+                <p class="text-muted small mb-0">
+                    {% if current_status %}
+                        Không có booking nào với trạng thái đã chọn.
+                    {% else %}
+                        Sân của bạn chưa có lượt đặt nào.
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

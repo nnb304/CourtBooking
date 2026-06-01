@@ -117,6 +117,36 @@ def booking_create(request, court_id):
     return render(request, 'bookings/booking_form.html', context)
 
 
+# DANH SÁCH BOOKING CÁC SÂN CỦA OWNER (read-only)
+def owner_booking_list(request):
+    # KIỂM TRA QUYỀN OWNER
+    if request.session.get('role') != 'owner':
+        return redirect('accounts:login')
+
+    # LỌC BOOKING THEO STATUS (nếu có query string ?status=...)
+    current_status = request.GET.get('status', '').strip()
+    bookings_qs = (
+        Booking.objects
+        .filter(court__owner=request.user)
+        .select_related('court', 'user', 'promotion')
+        .order_by('-date', '-created_at')
+    )
+    if current_status in ('pending', 'confirmed', 'cancelled'):
+        bookings_qs = bookings_qs.filter(status=current_status)
+    else:
+        current_status = ''   # chuẩn hoá để template dễ so sánh
+
+    # PHÂN TRANG
+    paginator   = Paginator(bookings_qs, 10)
+    page_number = request.GET.get('page')
+    page_obj    = paginator.get_page(page_number)
+
+    return render(request, 'bookings/owner_booking_list.html', {
+        'page_obj':       page_obj,
+        'current_status': current_status,
+    })
+
+
 # DANH SÁCH ĐƠN ĐẶT SÂN CỦA TÔI
 @login_required
 def booking_list(request):
