@@ -10,8 +10,8 @@
 
     {% if page_obj %}
         <div class="table-responsive">
-            <table class="table table-hover align-middle">
-                <thead class="table-success">
+            <table class="table table-cb align-middle">
+                <thead>
                     <tr>
                         <th>Sân</th>
                         <th>Ngày</th>
@@ -32,13 +32,13 @@
                             </a>
                         </td>
                         <td>{{ booking.date|date:"d/m/Y" }}</td>
-                        <td>
+                        <td class="text-nowrap">
                             {{ booking.start_time|time:"H:i" }} –
                             {{ booking.end_time|time:"H:i" }}
                         </td>
                         <td>{{ booking.duration_hours }} giờ</td>
-                        <td style="color: #1b5e20;">
-                            <span class="fw-semibold">{{ booking.total_price|intcomma }}đ</span>
+                        <td class="text-success fw-semibold">
+                            {{ booking.total_price|intcomma }}đ
                             {% if booking.promotion %}
                             <div class="small mt-1" style="color:#2e7d32;">
                                 Đã áp mã {{ booking.promotion.code }}
@@ -48,11 +48,11 @@
                         </td>
                         <td>
                             {% if booking.status == 'confirmed' %}
-                                <span class="badge bg-success">Đã xác nhận</span>
+                                <span class="badge badge-status bg-success">Đã xác nhận</span>
                             {% elif booking.status == 'pending' %}
-                                <span class="badge bg-warning text-dark">Chờ thanh toán</span>
+                                <span class="badge badge-status bg-warning text-dark">Chờ thanh toán</span>
                             {% else %}
-                                <span class="badge bg-secondary">Đã huỷ</span>
+                                <span class="badge badge-status bg-secondary">Đã huỷ</span>
                             {% endif %}
                         </td>
                         <td>
@@ -95,11 +95,8 @@
         {% endif %}
 
     {% else %}
-        <!-- CHƯA CÓ ĐƠN NÀO -->
-        <div class="text-center py-5">
-            <p class="text-muted mb-3">Bạn chưa có đơn đặt sân nào.</p>
-            <a href="{% url 'courts:court_list' %}" class="btn btn-success">Tìm sân ngay</a>
-        </div>
+        <!-- EMPTY STATE -->
+        {% include 'partials/empty_state.html' with icon='bi-calendar2-x' title='Chưa có đơn đặt sân' description='Bạn chưa đặt sân nào. Tìm và đặt ngay hôm nay!' cta_url='/' cta_text='Tìm sân ngay' %}
     {% endif %}
 
 </div>

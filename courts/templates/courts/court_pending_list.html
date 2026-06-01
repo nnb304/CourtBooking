@@ -12,8 +12,8 @@
 
     {% if page_obj %}
         <div class="table-responsive">
-            <table class="table table-hover align-middle">
-                <thead class="table-success">
+            <table class="table table-cb align-middle">
+                <thead>
                     <tr>
                         <th style="width:80px;">Ảnh</th>
                         <th>Tên sân</th>
@@ -32,10 +32,10 @@
                             {% if court.image %}
                                 <img src="{{ court.image.url }}"
                                      alt="{{ court.name }}"
-                                     style="width:70px; height:50px; object-fit:cover; border-radius:4px;">
+                                     style="width:70px; height:50px; object-fit:cover; border-radius:6px;">
                             {% else %}
                                 <div class="d-flex align-items-center justify-content-center"
-                                     style="width:70px; height:50px; background:#c8e6c9; border-radius:4px; font-size:24px;">
+                                     style="width:70px; height:50px; background:#c8e6c9; border-radius:6px; font-size:24px;">
                                     {% if court.court_type == 'badminton' %}🏸
                                     {% elif court.court_type == 'football' %}⚽
                                     {% elif court.court_type == 'pickleball' %}🏓
@@ -49,15 +49,14 @@
                         <td class="fw-semibold">{{ court.name }}</td>
                         <td>{{ court.get_court_type_display }}</td>
 
-                        <!-- CHỦ SÂN (phòng trường hợp owner null) -->
+                        <!-- CHỦ SÂN -->
                         <td>{{ court.owner.username|default:"(không có chủ)" }}</td>
 
                         <td class="text-muted small">{{ court.address }}</td>
-                        <td style="color:#1b5e20;">{{ court.price_per_hour|intcomma }}đ</td>
+                        <td class="text-success fw-semibold">{{ court.price_per_hour|intcomma }}đ</td>
 
                         <!-- HÀNH ĐỘNG: NÚT DUYỆT + TỪ CHỐI -->
                         <td>
-                            <!-- DUYỆT: POST trực tiếp, không cần confirm -->
                             <form method="POST"
                                   action="{% url 'courts:court_approve' court.pk %}"
                                   class="d-inline">
@@ -67,7 +66,6 @@
                                 </button>
                             </form>
 
-                            <!-- TỪ CHỐI: link GET sang trang confirm -->
                             <a href="{% url 'courts:court_reject' court.pk %}"
                                class="btn btn-danger btn-sm">
                                 <i class="bi bi-x-lg"></i> Từ chối
@@ -104,9 +102,7 @@
 
     {% else %}
         <!-- EMPTY STATE -->
-        <div class="alert alert-info">
-            <i class="bi bi-info-circle me-1"></i>Không có sân nào chờ duyệt.
-        </div>
+        {% include 'partials/empty_state.html' with icon='bi-clipboard-check' title='Không có sân chờ duyệt' description='Tất cả sân đã được xử lý. Không còn sân nào đang chờ phê duyệt.' %}
     {% endif %}
 
 </div>

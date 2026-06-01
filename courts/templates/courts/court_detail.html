@@ -8,38 +8,38 @@
 
     <!-- NÚT QUAY LẠI -->
     <a href="{% url 'courts:court_list' %}" class="btn btn-outline-secondary btn-sm mb-4">
-        ← Quay lại danh sách
+        <i class="bi bi-arrow-left me-1"></i>Quay lại danh sách
     </a>
 
-    <!-- ẢNH SÂN (full width) -->
+    <!-- ẢNH HERO (16/9 cố định, border-radius 16px) -->
     {% if court.image %}
         <img src="{{ court.image.url }}"
              alt="{{ court.name }}"
-             class="img-fluid rounded w-100 mb-4"
-             style="max-height: 450px; object-fit: cover;">
+             class="court-hero-img mb-4">
     {% else %}
         <!-- PLACEHOLDER EMOJI KHI CHƯA CÓ ẢNH -->
-        <div class="d-flex align-items-center justify-content-center rounded mb-4"
-             style="height: 400px; background: #c8e6c9;">
+        <div class="court-hero-placeholder mb-4">
             {% if court.court_type == 'badminton' %}
-                <span style="font-size: 120px;">🏸</span>
+                <span>🏸</span>
             {% elif court.court_type == 'football' %}
-                <span style="font-size: 120px;">⚽</span>
+                <span>⚽</span>
             {% elif court.court_type == 'pickleball' %}
-                <span style="font-size: 120px;">🏓</span>
+                <span>🏓</span>
             {% elif court.court_type == 'basketball' %}
-                <span style="font-size: 120px;">🏀</span>
+                <span>🏀</span>
             {% elif court.court_type == 'tennis' %}
-                <span style="font-size: 120px;">🎾</span>
+                <span>🎾</span>
             {% else %}
-                <span style="font-size: 120px;">🏟️</span>
+                <span>🏟️</span>
             {% endif %}
         </div>
     {% endif %}
 
-    <!-- THÔNG TIN SÂN (giới hạn chiều rộng để dễ đọc) -->
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
+    <!-- LAYOUT 2 CỘT: thông tin bên trái, booking widget bên phải -->
+    <div class="row g-4">
+
+        <!-- CỘT TRÁI: thông tin chi tiết sân -->
+        <div class="col-md-8">
 
             <!-- TÊN SÂN + NÚT TIM YÊU THÍCH -->
             <div class="d-flex align-items-center gap-3 mb-2">
@@ -62,75 +62,92 @@
             </span>
 
             <!-- ĐỊA CHỈ -->
-            <p class="text-muted mb-2">
+            <p class="text-muted mb-3">
                 <i class="bi bi-geo-alt-fill me-1"></i>{{ court.address }}
-            </p>
-
-            <!-- GIÁ THUÊ -->
-            <p class="mb-3">
-                <span class="fw-bold" style="font-size: 1.6rem; color: #1b5e20;">
-                    {{ court.price_per_hour|intcomma }}đ
-                </span>
-                <span class="text-muted"> / giờ</span>
             </p>
 
             <!-- MÔ TẢ (chỉ hiện nếu có) -->
             {% if court.description %}
-                <p class="mb-3">{{ court.description }}</p>
+                <p class="mb-4 text-secondary">{{ court.description }}</p>
             {% endif %}
 
-            <!-- CHỦ SÂN -->
-            <p class="text-muted small mb-4">
-                Chủ sân: {{ court.owner.username }}
-            </p>
-
-            <!-- NÚT ĐẶT SÂN -->
-            <a href="{% url 'bookings:booking_create' court.pk %}"
-               class="btn btn-success btn-lg w-100">Đặt sân ngay</a>
+            <!-- CHỦ SÂN — AVATAR TRÒN + TÊN -->
+            <div class="d-flex align-items-center gap-2 mb-4">
+                <span class="owner-avatar">{{ court.owner.username|first|upper }}</span>
+                <div>
+                    <div class="fw-semibold" style="font-size:.95rem;">{{ court.owner.username }}</div>
+                    <div class="text-muted small">Chủ sân</div>
+                </div>
+            </div>
 
         </div>
+
+        <!-- CỘT PHẢI: BOOKING WIDGET -->
+        <div class="col-md-4">
+            <div class="booking-widget">
+                <!-- GIÁ NỔI BẬT -->
+                <div class="mb-1">
+                    <span class="price-main">{{ court.price_per_hour|intcomma }}đ</span>
+                </div>
+                <div class="price-unit mb-4">/ giờ</div>
+
+                <!-- NÚT ĐẶT SÂN FULL WIDTH -->
+                <a href="{% url 'bookings:booking_create' court.pk %}"
+                   class="btn-book d-block text-center text-decoration-none">
+                    <i class="bi bi-calendar2-plus me-2"></i>Đặt sân ngay
+                </a>
+
+                <!-- THÔNG TIN NHANH -->
+                <hr class="my-3">
+                <div class="small text-muted">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <i class="bi bi-geo-alt text-success"></i>
+                        <span>{{ court.address }}</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-tag text-success"></i>
+                        <span>{{ court.get_court_type_display }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- ===== KHU VỰC ĐÁNH GIÁ ===== -->
-    <div class="row justify-content-center mt-5">
-        <div class="col-lg-8">
+    <div class="row mt-5">
+        <div class="col-md-8">
             <h4 class="fw-bold mb-3">Đánh giá sân</h4>
 
-            <!-- ĐIỂM TRUNG BÌNH -->
+            <!-- ĐIỂM TRUNG BÌNH (tổng quan) -->
             {% if review_count > 0 %}
-            <div class="d-flex align-items-center gap-2 mb-4">
-                <span style="font-size: 2rem; font-weight: 700; color: #1b5e20;">
-                    {{ avg_rating|floatformat:1 }}
-                </span>
+            <div class="review-rating-summary">
+                <span class="score">{{ avg_rating|floatformat:1 }}</span>
                 <div>
-                    <!-- SAO TRUNG BÌNH -->
-                    {% for i in "12345" %}
-                        {% if forloop.counter <= avg_rounded %}
-                            <i class="bi bi-star-fill text-warning"></i>
-                        {% else %}
-                            <i class="bi bi-star text-warning"></i>
-                        {% endif %}
-                    {% endfor %}
-                    <div class="text-muted small">{{ review_count }} đánh giá</div>
+                    <div>
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= avg_rounded %}
+                                <i class="bi bi-star-fill text-warning"></i>
+                            {% else %}
+                                <i class="bi bi-star text-warning"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <div class="text-muted small mt-1">{{ review_count }} đánh giá</div>
                 </div>
             </div>
-            {% else %}
-            <p class="text-muted mb-4">Chưa có đánh giá nào. Hãy là người đầu tiên!</p>
             {% endif %}
 
             <!-- FORM GỬI ĐÁNH GIÁ -->
             {% if not user.is_authenticated %}
-                <!-- CHƯA ĐĂNG NHẬP -->
                 <p class="text-muted mb-4">
                     <a href="{% url 'accounts:login' %}?next={{ request.path }}">Đăng nhập để đánh giá</a>
                 </p>
             {% elif not can_review %}
-                <!-- ĐÃ ĐĂNG NHẬP NHƯNG CHƯA ĐẶT SÂN THÀNH CÔNG -->
                 <p class="text-muted mb-4">
                     <i class="bi bi-lock me-1"></i>Bạn cần đặt và thanh toán sân này trước khi đánh giá.
                 </p>
             {% elif has_reviewed %}
-                <!-- ĐÃ ĐÁNH GIÁ RỒI -->
                 <div class="alert alert-info">Bạn đã đánh giá sân này rồi.</div>
             {% else %}
                 <!-- CÓ QUYỀN VÀ CHƯA ĐÁNH GIÁ — HIỆN FORM -->
@@ -167,28 +184,37 @@
 
             <!-- DANH SÁCH ĐÁNH GIÁ -->
             {% for rv in reviews_list %}
-            <div class="border-bottom pb-3 mb-3">
+            <div class="review-card">
                 <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <span class="fw-semibold">{{ rv.user.username }}</span>
-                        <span class="ms-2">
-                            {% for i in "12345" %}
-                                {% if forloop.counter <= rv.rating %}
-                                    <i class="bi bi-star-fill text-warning small"></i>
-                                {% else %}
-                                    <i class="bi bi-star text-muted small"></i>
-                                {% endif %}
-                            {% endfor %}
-                        </span>
+                    <div class="d-flex align-items-center gap-2">
+                        <!-- AVATAR TRÒN CỦA REVIEWER -->
+                        <span class="review-avatar">{{ rv.user.username|first|upper }}</span>
+                        <div>
+                            <span class="fw-semibold">{{ rv.user.username }}</span>
+                            <!-- BADGE ADMIN nếu là nhóm quản trị -->
+                            {% if rv.user.role == 'admin' %}
+                                <span class="badge bg-secondary ms-1" style="font-size:.7rem;">ADMIN</span>
+                            {% endif %}
+                            <div class="mt-1">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= rv.rating %}
+                                        <i class="bi bi-star-fill text-warning small"></i>
+                                    {% else %}
+                                        <i class="bi bi-star text-muted small"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
                     </div>
                     <span class="text-muted small">{{ rv.created_at|date:"d/m/Y" }}</span>
                 </div>
                 {% if rv.comment %}
-                    <p class="mt-1 mb-0 text-secondary">{{ rv.comment }}</p>
+                    <p class="mt-2 mb-0 text-secondary">{{ rv.comment }}</p>
                 {% endif %}
             </div>
             {% empty %}
-            <!-- Không có đánh giá nào — đã hiện thông báo ở trên -->
+            <!-- EMPTY STATE KHI CHƯA CÓ ĐÁNH GIÁ -->
+            {% include 'partials/empty_state.html' with icon='bi-chat-square' title='Chưa có đánh giá nào' description='Hãy là người đầu tiên chia sẻ trải nghiệm về sân này!' %}
             {% endfor %}
 
         </div>
@@ -205,7 +231,7 @@
     const starLabel  = document.getElementById('starLabel');
     const labels     = ['', 'Tệ', 'Không tốt', 'Bình thường', 'Tốt', 'Xuất sắc'];
 
-    if (!stars.length) return;   // form không hiển thị (đã review hoặc chưa đăng nhập)
+    if (!stars.length) return;
 
     function paintStars(value) {
         stars.forEach(s => {
@@ -216,11 +242,8 @@
     }
 
     stars.forEach(s => {
-        // HOVER
         s.addEventListener('mouseenter', () => paintStars(+s.dataset.value));
-        // RESET KHI RỜI WIDGET
         s.addEventListener('mouseleave', () => paintStars(+ratingInput.value || 0));
-        // CLICK — chọn điểm
         s.addEventListener('click', () => {
             ratingInput.value  = s.dataset.value;
             starLabel.textContent = labels[s.dataset.value];

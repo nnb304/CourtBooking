@@ -1,0 +1,500 @@
+/* ============================================================
+   COURTBOOKING — CUSTOM STYLESHEET
+   Chỉ dùng Bootstrap 5 + Bootstrap Icons (CDN)
+   Không dùng Tailwind, không thêm thư viện ngoài
+   ============================================================ */
+
+/* BIẾN MÀU VÀ KÍCH THƯỚC */
+:root {
+    --primary:       #15803d;
+    --primary-dark:  #0f6030;
+    --primary-light: #dcfce7;
+    --primary-muted: rgba(21, 128, 61, 0.06);
+    --text-muted:    #6b7280;
+    --border:        #e5e7eb;
+    --shadow-sm:     0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
+    --shadow-md:     0 4px 12px rgba(0,0,0,.12), 0 2px 6px rgba(0,0,0,.07);
+    --shadow-hover:  0 8px 24px rgba(0,0,0,.14), 0 4px 8px rgba(0,0,0,.08);
+    --radius-card:   14px;
+    --radius-img:    12px 12px 0 0;
+}
+
+/* TRANSITION MẶC ĐỊNH */
+.card,
+.btn,
+a {
+    transition: all 0.2s ease;
+}
+
+/* ============================================================
+   NAVBAR
+   ============================================================ */
+.navbar {
+    background-color: var(--primary) !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,.15);
+}
+
+.navbar-brand {
+    font-size: 1.35rem;
+    letter-spacing: -.3px;
+}
+
+.navbar .nav-link {
+    color: rgba(255,255,255,.88) !important;
+    font-size: .93rem;
+    padding-left: .75rem !important;
+    padding-right: .75rem !important;
+}
+
+.navbar .nav-link:hover,
+.navbar .nav-link.active {
+    color: #fff !important;
+}
+
+/* ============================================================
+   CARD SÂN (court cards)
+   ============================================================ */
+.court-card {
+    border-radius: var(--radius-card);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    cursor: pointer;
+    background: #fff;
+}
+
+.court-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);
+}
+
+/* ẢNH SÂN — TỶ LỆ 16/9 CỐ ĐỊNH */
+.court-img-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: var(--radius-img);
+}
+
+.court-img-wrap img,
+.court-img-wrap .court-img-placeholder {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.court-img-placeholder {
+    background: #c8e6c9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 64px;
+}
+
+/* NÚT TIM YÊU THÍCH — góc trên phải ảnh */
+.court-fav-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.92);
+    border: none;
+    box-shadow: 0 2px 6px rgba(0,0,0,.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease;
+    padding: 0;
+    line-height: 1;
+}
+
+.court-fav-btn:hover {
+    transform: scale(1.15);
+    background: #fff;
+}
+
+/* CARD BODY */
+.court-card .card-body {
+    padding: 1rem 1.1rem 1.1rem;
+}
+
+.court-card .card-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: .35rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.court-price {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+/* ============================================================
+   COURT DETAIL PAGE
+   ============================================================ */
+
+/* ẢNH HERO */
+.court-hero-img {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: 16px;
+    display: block;
+}
+
+.court-hero-placeholder {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #c8e6c9;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 120px;
+}
+
+/* BOOKING WIDGET — sticky card bên phải */
+.booking-widget {
+    position: sticky;
+    top: 80px;
+    border-radius: var(--radius-card);
+    border: 1.5px solid var(--border);
+    box-shadow: var(--shadow-md);
+    background: #fff;
+    padding: 1.5rem;
+}
+
+.booking-widget .price-main {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--primary);
+    line-height: 1.1;
+}
+
+.booking-widget .price-unit {
+    font-size: .95rem;
+    color: var(--text-muted);
+    font-weight: 400;
+}
+
+.booking-widget .btn-book {
+    background-color: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+    font-weight: 600;
+    font-size: 1.05rem;
+    padding: .7rem 1rem;
+    border-radius: 10px;
+    width: 100%;
+    transition: background-color 0.2s ease;
+}
+
+.booking-widget .btn-book:hover {
+    background-color: var(--primary-dark);
+    border-color: var(--primary-dark);
+}
+
+/* CHỦ SÂN — AVATAR TRÒN */
+.owner-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--primary);
+    color: #fff;
+    font-weight: 700;
+    font-size: 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+/* ============================================================
+   REVIEW CARDS
+   ============================================================ */
+.review-card {
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    padding: 1rem 1.25rem;
+    background: #fff;
+    margin-bottom: .75rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.review-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background-color: var(--primary-light);
+    color: var(--primary);
+    font-weight: 700;
+    font-size: .95rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.review-rating-summary {
+    background: var(--primary-light);
+    border-radius: 12px;
+    padding: .75rem 1.25rem;
+    display: inline-flex;
+    align-items: center;
+    gap: .75rem;
+    margin-bottom: 1.25rem;
+}
+
+.review-rating-summary .score {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--primary);
+    line-height: 1;
+}
+
+/* ============================================================
+   EMPTY STATE (dùng chung toàn trang)
+   ============================================================ */
+.empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+    border: 2px dashed var(--border);
+    border-radius: var(--radius-card);
+    background-color: #fafafa;
+}
+
+.empty-state .empty-icon {
+    font-size: 4rem;
+    color: var(--text-muted);
+    opacity: .55;
+    display: block;
+    margin-bottom: .75rem;
+}
+
+.empty-state h4 {
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: .5rem;
+}
+
+.empty-state p {
+    color: var(--text-muted);
+    margin-bottom: 0;
+    font-size: .95rem;
+}
+
+.empty-state .btn-cta {
+    margin-top: 1.25rem;
+}
+
+/* ============================================================
+   TABLES (danh sách booking, sân của tôi...)
+   ============================================================ */
+.table-cb thead {
+    background-color: var(--primary-light);
+}
+
+.table-cb thead th {
+    font-weight: 600;
+    font-size: .83rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--primary);
+    border-bottom: 2px solid #bbf7d0;
+    padding: .85rem .75rem;
+}
+
+.table-cb tbody tr:hover {
+    background-color: var(--primary-muted);
+}
+
+.table-cb tbody td {
+    vertical-align: middle;
+    border-color: var(--border);
+}
+
+/* BADGE TRẠNG THÁI */
+.badge-status {
+    padding: .4em .8em;
+    font-size: .83rem;
+    font-weight: 600;
+    border-radius: 6px;
+    letter-spacing: .01em;
+}
+
+/* ============================================================
+   PAGINATION
+   ============================================================ */
+.page-item.active .page-link {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+.page-link {
+    color: var(--primary);
+}
+
+.page-link:hover {
+    color: var(--primary-dark);
+    background-color: var(--primary-light);
+    border-color: var(--border);
+}
+
+/* ============================================================
+   FILTER BAR (owner booking list)
+   ============================================================ */
+.filter-bar .btn-outline-success {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.filter-bar .btn-outline-success:hover,
+.filter-bar .btn-success {
+    background-color: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+}
+
+/* ============================================================
+   NÚT ĐẶT SÂN TỔNG QUÁT
+   ============================================================ */
+.btn-success,
+.btn-outline-success:hover {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+.btn-success:hover {
+    background-color: var(--primary-dark);
+    border-color: var(--primary-dark);
+}
+
+.btn-outline-success {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.text-success {
+    color: var(--primary) !important;
+}
+
+.bg-success {
+    background-color: var(--primary) !important;
+}
+
+/* ============================================================
+   WOW ANIMATIONS — layer 2 (không sửa phần trên)
+   ============================================================ */
+
+/* SMOOTH SCROLL */
+html {
+    scroll-behavior: smooth;
+}
+
+/* PAGE FADE-IN KHI LOAD */
+@keyframes pageFadeIn {
+    0%   { opacity: 0; transform: translateY(8px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+body {
+    animation: pageFadeIn 0.4s ease-out;
+}
+
+/* HERO GRADIENT SHIFT CHẬM */
+@keyframes gradientShift {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+.hero-gradient {
+    background: linear-gradient(135deg, var(--primary), #166534, #14532d, #1a7a3c, var(--primary)) !important;
+    background-size: 300% 300% !important;
+    animation: gradientShift 15s ease infinite;
+    color: #fff;
+}
+
+/* HEART BOUNCE + PULSE RING KHI CLICK FAVORITE */
+@keyframes heartPop {
+    0%   { transform: scale(1); }
+    30%  { transform: scale(1.45); }
+    60%  { transform: scale(0.9); }
+    100% { transform: scale(1); }
+}
+@keyframes pulseRing {
+    0%   { transform: scale(1); opacity: .55; }
+    100% { transform: scale(2.8); opacity: 0; }
+}
+.court-fav-btn.heart-pop i {
+    animation: heartPop 0.4s ease;
+}
+.court-fav-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: rgba(239, 68, 68, 0.3);
+    opacity: 0;
+    pointer-events: none;
+}
+.court-fav-btn.heart-pop::after {
+    animation: pulseRing 0.6s ease-out;
+}
+
+/* NAVBAR SHADOW ON SCROLL */
+.navbar {
+    transition: box-shadow 0.25s ease !important;
+}
+.navbar.nav-scrolled {
+    box-shadow: 0 2px 20px rgba(0,0,0,.2) !important;
+}
+
+/* BUTTON HOVER POLISH */
+.btn {
+    transition: transform 0.15s ease, box-shadow 0.15s ease,
+                background-color 0.2s ease, border-color 0.2s ease !important;
+}
+.btn-success:hover:not(:disabled),
+.btn-primary:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(21, 128, 61, 0.28);
+}
+.btn-outline-success:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(21, 128, 61, 0.2);
+}
+.btn:active {
+    transform: translateY(0) !important;
+    box-shadow: none !important;
+}
+
+/* SHIMMER LOADING CHO ẢNH SÂN (trước khi img load xong) */
+@keyframes shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+.court-img-wrap {
+    background: linear-gradient(90deg, #e2e8ec 25%, #f0f4f6 50%, #e2e8ec 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.6s ease-in-out infinite;
+}
+/* Ảnh nằm trên shimmer khi đã load xong */
+.court-img-wrap img {
+    position: relative;
+    z-index: 1;
+}
+/* Placeholder emoji cũng trên shimmer */
+.court-img-placeholder {
+    position: relative;
+    z-index: 1;
+    animation: none;
+}

@@ -101,8 +101,10 @@ def toggle_favorite_view(request, pk):
         fav = Favorite.objects.filter(user=request.user, court=court)
         if fav.exists():
             fav.delete()   # đã thích → bỏ thích
+            messages.success(request, f'Đã bỏ "{court.name}" khỏi danh sách yêu thích.')
         else:
             Favorite.objects.create(user=request.user, court=court)
+            messages.success(request, f'Đã thêm "{court.name}" vào danh sách yêu thích!')
     # quay lại trang trước, hoặc về trang chủ nếu không có referer
     referer = request.META.get('HTTP_REFERER', '')
     return redirect(referer if referer else 'courts:court_list')

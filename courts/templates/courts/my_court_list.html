@@ -16,8 +16,8 @@
 
     {% if page_obj %}
         <div class="table-responsive">
-            <table class="table table-hover align-middle">
-                <thead class="table-success">
+            <table class="table table-cb align-middle">
+                <thead>
                     <tr>
                         <th style="width:80px;">Ảnh</th>
                         <th>Tên sân</th>
@@ -35,10 +35,10 @@
                             {% if court.image %}
                                 <img src="{{ court.image.url }}"
                                      alt="{{ court.name }}"
-                                     style="width:70px; height:50px; object-fit:cover; border-radius:4px;">
+                                     style="width:70px; height:50px; object-fit:cover; border-radius:6px;">
                             {% else %}
                                 <div class="d-flex align-items-center justify-content-center"
-                                     style="width:70px; height:50px; background:#c8e6c9; border-radius:4px; font-size:24px;">
+                                     style="width:70px; height:50px; background:#c8e6c9; border-radius:6px; font-size:24px;">
                                     {% if court.court_type == 'badminton' %}🏸
                                     {% elif court.court_type == 'football' %}⚽
                                     {% elif court.court_type == 'pickleball' %}🏓
@@ -56,14 +56,14 @@
                         <td>{{ court.get_court_type_display }}</td>
 
                         <!-- GIÁ THUÊ -->
-                        <td style="color:#1b5e20;">{{ court.price_per_hour|intcomma }}đ</td>
+                        <td class="text-success fw-semibold">{{ court.price_per_hour|intcomma }}đ</td>
 
                         <!-- TRẠNG THÁI -->
                         <td>
                             {% if court.is_active %}
-                                <span class="badge bg-success">Đang hoạt động</span>
+                                <span class="badge badge-status bg-success">Đang hoạt động</span>
                             {% else %}
-                                <span class="badge bg-warning text-dark">Chờ duyệt</span>
+                                <span class="badge badge-status bg-warning text-dark">Chờ duyệt</span>
                             {% endif %}
                         </td>
 
@@ -109,14 +109,7 @@
 
     {% else %}
         <!-- EMPTY STATE -->
-        <div class="text-center py-5">
-            <p class="text-muted mb-3">
-                Bạn chưa đăng sân nào. Bấm "Đăng sân mới" để bắt đầu.
-            </p>
-            <a href="{% url 'courts:court_create' %}" class="btn btn-success">
-                <i class="bi bi-plus-circle me-1"></i>Đăng sân mới
-            </a>
-        </div>
+        {% include 'partials/empty_state.html' with icon='bi-building-add' title='Chưa có sân nào' description='Bạn chưa đăng sân nào. Bấm nút để bắt đầu.' cta_url='/add/' cta_text='Đăng sân mới' %}
     {% endif %}
 
 </div>

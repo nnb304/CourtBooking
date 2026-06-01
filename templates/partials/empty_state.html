@@ -1,0 +1,16 @@
+{% comment %}
+EMPTY STATE PARTIAL — dùng chung toàn dự án
+Cách dùng:
+  {% include 'partials/empty_state.html' with icon='bi-inbox' title='...' description='...' cta_url='...' cta_text='...' %}
+  cta_url và cta_text là optional — nếu không truyền thì không render nút
+{% endcomment %}
+<div class="empty-state my-4">
+    <i class="bi {{ icon|default:'bi-inbox' }} empty-icon"></i>
+    <h4>{{ title }}</h4>
+    {% if description %}
+        <p>{{ description }}</p>
+    {% endif %}
+    {% if cta_url and cta_text %}
+        <a href="{{ cta_url }}" class="btn btn-success btn-cta">{{ cta_text }}</a>
+    {% endif %}
+</div>
