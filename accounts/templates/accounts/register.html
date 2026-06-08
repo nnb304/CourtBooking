@@ -8,10 +8,46 @@
     <div class="col-md-5">
         <div class="card shadow-sm">
             <div class="card-body p-4">
-                <h4 class="card-title text-center mb-4">Tạo tài khoản</h4>
+                <h4 class="card-title text-center mb-3" style="color:#1b5e20;">
+                    Tạo tài khoản
+                </h4>
+
+                <!-- TAB CHỌN ROLE -->
+                <ul class="nav nav-pills nav-fill mb-2" id="registerTab">
+                    <li class="nav-item">
+                        <button class="nav-link active" id="tab-player"
+                                type="button" onclick="setRole('player')">
+                            ⚽ Người chơi
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" id="tab-owner"
+                                type="button" onclick="setRole('owner')">
+                            🏟️ Chủ sân
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- MÔ TẢ NGẮN THEO ROLE ĐANG CHỌN -->
+                <p class="text-center text-muted small mb-3" id="role_desc">
+                    Tìm và đặt sân thể thao dễ dàng
+                </p>
+
+                <!-- THÔNG BÁO LỖI -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-danger alert-dismissible fade show py-2" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
 
                 <form method="POST">
                     {% csrf_token %}
+                    <!-- HIDDEN INPUT ROLE — JS điền khi click tab -->
+                    <input type="hidden" name="role" id="role_input" value="player">
+
                     {% for field in form %}
                         <div class="mb-3">
                             <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
@@ -23,18 +59,48 @@
                             {% endif %}
                         </div>
                     {% endfor %}
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary">Đăng ký</button>
+
+                    <div class="d-grid mt-3">
+                        <button type="submit" class="btn btn-success"
+                                style="background-color:#1b5e20; border-color:#1b5e20;">
+                            Đăng ký
+                        </button>
                     </div>
                 </form>
 
                 <hr>
                 <p class="text-center mb-0">
-                    Đã có tài khoản? <a href="{% url 'accounts:login' %}">Đăng nhập</a>
+                    Đã có tài khoản?
+                    <a href="{% url 'accounts:login' %}" style="color:#1b5e20;">Đăng nhập</a>
                 </p>
             </div>
         </div>
     </div>
 </div>
 </div>
+
+<script>
+    // ĐỔI ROLE, ACTIVE TAB VÀ MÔ TẢ KHI CLICK
+    const roleDesc = {
+        player: 'Tìm và đặt sân thể thao dễ dàng',
+        owner:  'Đăng sân và quản lý lịch đặt của bạn',
+    };
+    function setRole(role) {
+        document.getElementById('role_input').value = role;
+        document.getElementById('tab-player').classList.toggle('active', role === 'player');
+        document.getElementById('tab-owner').classList.toggle('active', role === 'owner');
+        document.getElementById('role_desc').textContent = roleDesc[role];
+    }
+</script>
+
+<style>
+    #registerTab .nav-link.active {
+        background-color: #1b5e20;
+        color: #fff;
+    }
+    #registerTab .nav-link:not(.active) {
+        color: #1b5e20;
+        border: 1px solid #1b5e20;
+    }
+</style>
 {% endblock %}

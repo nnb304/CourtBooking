@@ -20,7 +20,7 @@ def _get_favorited_ids(user):
 
 # TRANG CHỦ - DANH SÁCH SÂN (có tìm kiếm, lọc và phân trang)
 def court_list(request):
-    courts_qs = Court.objects.filter(is_active=True).annotate(
+    courts_qs = Court.objects.filter(is_active=True).order_by('-id').annotate(
         avg_rating=Avg('reviews__rating'),
         review_count=Count('reviews'),
     )
@@ -39,10 +39,13 @@ def court_list(request):
     if district:
         courts_qs = courts_qs.filter(district=district)
     if price_max:
-        courts_qs = courts_qs.filter(price_per_hour__lte=price_max)
+        try:
+            courts_qs = courts_qs.filter(price_per_hour__lte=float(price_max))
+        except ValueError:
+            pass
 
     # PHÂN TRANG
-    paginator   = Paginator(courts_qs, 10)
+    paginator   = Paginator(courts_qs, 12)
     page_number = request.GET.get('page')
     page_obj    = paginator.get_page(page_number)
 

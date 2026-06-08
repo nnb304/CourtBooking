@@ -55,6 +55,7 @@ class Booking(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+        unique_together = ('court', 'date', 'start_time')  # Chống trùng lịch ở DB level
         verbose_name = 'Đặt sân'
         verbose_name_plural = 'Danh sách đặt sân'
 

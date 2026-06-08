@@ -10,10 +10,22 @@ def register_view(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
-            user = form.save()
+            user = form.save(commit=False)
+
+            # LẤY ROLE TỪ FORM (hidden input do tab JS điền)
+            role = request.POST.get('role', 'player')
+
+            # BẢO MẬT: chỉ chấp nhận 'player' hoặc 'owner'
+            # (chống user F12 sửa thành 'admin')
+            if role in ['player', 'owner']:
+                user.role = role
+            else:
+                user.role = 'player'
+
+            user.save()
             login(request, user)
             request.session['role'] = user.role
-            messages.success(request, 'Đăng ký thành công! Chào mừng bạn đến CourtBooking.')
+            messages.success(request, 'Đăng ký thành công! Chào mừng đến CourtBooking.')
             return redirect('courts:court_list')
         else:
             messages.error(request, 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.')
@@ -34,8 +46,18 @@ def login_view(request):
         form = LoginForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
+
+            # XÁC THỰC ROLE: role chọn ở tab phải khớp role trong DB
+            # Admin login không cần check tab (admin login qua bất kỳ tab nào cũng được)
+            requested_role = request.POST.get('role')
+            if requested_role in ['player', 'owner'] and user.role != 'admin':
+                if user.role != requested_role:
+                    role_name = 'Chủ sân' if requested_role == 'owner' else 'Người chơi'
+                    messages.error(request, f'Tài khoản này không có quyền {role_name}.')
+                    return render(request, 'accounts/login.html', {'form': form})
+
             login(request, user)
-            request.session['role'] = user.role
+            request.session['role'] = user.role  # ĐÚNG CLAUDE.md mục 2.8
             messages.success(request, f'Chào mừng trở lại, {user.username}!')
             return redirect('courts:court_list')
         else:

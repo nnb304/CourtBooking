@@ -36,6 +36,8 @@ class BookingForm(forms.ModelForm):
         # KHÔNG CHO ĐẶT NGÀY TRONG QUÁ KHỨ
         if booking_date < date.today():
             raise forms.ValidationError('Không thể đặt sân cho ngày đã qua.')
+        elif booking_date == date.today() and start_time < datetime.now().time():
+            raise forms.ValidationError('Không thể đặt khung giờ đã qua trong ngày hôm nay.')
 
         # TÍNH GIỜ KẾT THÚC CỦA ĐƠN MỚI
         dt_new_start = datetime.combine(booking_date, start_time)
