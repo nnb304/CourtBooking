@@ -8,86 +8,27 @@
 
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <!-- CSS tùy chỉnh CourtBooking (đặt sau Bootstrap để override) -->
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100">
 
-<!-- THANH ĐIỀU HƯỚNG -->
-<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #1b5e20;">
-    <div class="container">
-        <!-- Tên thương hiệu, link về trang chủ -->
-        <a class="navbar-brand fw-bold" href="/">CourtBooking</a>
-
-        <button class="navbar-toggler" type="button"
-                data-bs-toggle="collapse" data-bs-target="#navbarMain">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <div class="collapse navbar-collapse" id="navbarMain">
-            <ul class="navbar-nav ms-auto">
-                {% if user.is_authenticated %}
-                    <!-- LINK ADMIN: DASHBOARD VÀ DUYỆT SÂN -->
-                    {% if request.session.role == 'admin' %}
-                    <li class="nav-item">
-                        <a class="nav-link fw-semibold" href="{% url 'dashboard:index' %}">
-                            <i class="bi bi-speedometer2 me-1"></i>Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link fw-semibold" href="{% url 'courts:court_pending_list' %}">
-                            <i class="bi bi-clipboard-check me-1"></i>Duyệt sân
-                        </a>
-                    </li>
-                    {% endif %}
-                    <!-- LINK SÂN CỦA TÔI CHỈ HIỆN VỚI OWNER -->
-                    {% if request.session.role == 'owner' %}
-                    <li class="nav-item">
-                        <a class="nav-link fw-semibold" href="{% url 'courts:my_court_list' %}">
-                            <i class="bi bi-building me-1"></i>Sân của tôi
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link fw-semibold" href="{% url 'bookings:owner_booking_list' %}">
-                            <i class="bi bi-calendar2-check me-1"></i>Booking sân của tôi
-                        </a>
-                    </li>
-                    {% endif %}
-                    <!-- Người dùng đã đăng nhập -->
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'courts:favorite_list' %}">
-                            <i class="bi bi-heart-fill text-danger"></i> Yêu thích
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'bookings:booking_list' %}">Đơn của tôi</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'accounts:profile' %}">{{ user.username }}</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'accounts:logout' %}">Đăng xuất</a>
-                    </li>
-                {% else %}
-                    <!-- Chưa đăng nhập -->
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'accounts:login' %}">Đăng nhập</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'accounts:register' %}">Đăng ký</a>
-                    </li>
-                {% endif %}
-            </ul>
-        </div>
-    </div>
-</nav>
+<!-- THANH ĐIỀU HƯỚNG (tách ra partials/header.html theo layout cô dạy) -->
+{% include 'partials/header.html' %}
 
 <!-- NỘI DUNG TRANG CON (không có container ở đây, mỗi trang tự quản lý layout) -->
-<main>
+<main class="flex-grow-1">
     {% block content %}{% endblock %}
 </main>
+
+<!-- FOOTER -->
+{% include 'partials/footer.html' %}
 
 <!-- TOAST NOTIFICATIONS (Bootstrap Toast, khởi tạo bằng main.js) -->
 {% include 'partials/toasts.html' %}
