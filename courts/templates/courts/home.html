@@ -5,176 +5,338 @@
 
 {% block content %}
 
-<!-- HERO BANNER -->
-<section class="hero-gradient" style="padding: 90px 0; text-align: center;">
-    <div class="container">
-        <h1 class="fw-bold mb-3" style="font-size: 2.6rem;">
-            Đặt sân thể thao dễ dàng
-        </h1>
-        <p class="mb-4" style="font-size: 1.15rem; opacity: .9;">
-            Tìm và đặt sân cầu lông, bóng đá, pickleball... gần bạn
-        </p>
-        <a href="#ds-san"
-           class="btn btn-warning btn-lg fw-semibold px-5"
-           style="color: #1b5e20;">
-            Xem sân ngay
-        </a>
+<!-- ============================================================
+     HERO SECTION — banner lớn gradient + tiêu đề + floating search bar
+     ============================================================ -->
+<section class="hero-section position-relative hero-animated-bg page-fade-in" style="min-height: 52vh; display: flex; align-items: center;">
+
+    <!-- HIỆU ỨNG NỀN TRANG TRÍ (được wrap lại để không cắt dropdown) -->
+    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden; pointer-events: none;">
+        <div style="position: absolute; top: -80px; right: -60px; width: 300px; height: 300px;
+                    background: radial-gradient(circle, rgba(21,128,61,.08) 0%, transparent 70%);
+                    border-radius: 50%;"></div>
+        <div style="position: absolute; bottom: -100px; left: -80px; width: 400px; height: 400px;
+                    background: radial-gradient(circle, rgba(99,102,241,.06) 0%, transparent 70%);
+                    border-radius: 50%;"></div>
+    </div>
+
+    <div class="container position-relative" style="z-index: 2;">
+
+        <!-- TIÊU ĐỀ LỚN -->
+        <div class="text-center mb-5" style="margin: auto; padding-bottom: 2rem; padding-top: 1rem;">
+            <h1 class="mb-3" style="font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 4rem; color: #111827; line-height: 1.15; letter-spacing: -1px;">
+                Cháy hết mình<br>
+                <span style="color: #059669;">Cùng Đam Mê</span>
+            </h1>
+            <p class="mb-0 mx-auto" style="font-family: 'Montserrat', sans-serif; font-weight: 500; font-size: 1.2rem; color: #4b5563; max-width: 650px; line-height: 1.6;">
+                Khám phá hàng trăm sân tập chất lượng cao. Đặt sân nhanh chóng, tiện lợi chỉ với vài cú click!
+            </p>
+        </div>
+
+        <!-- ============================================================
+             NEW SEARCH BAR (Pill Style, Montserrat Font)
+             ============================================================ -->
+        <form method="GET" action="{% url 'courts:court_list' %}#ds-san">
+            <div class="search-container-outer">
+                <div class="row g-3 align-items-stretch">
+
+                    <!-- Ô TÌM KIẾM CHÍNH (Pill) -->
+                    <div class="col-12 col-md-3">
+                        <div class="d-flex align-items-center gap-2 search-pill">
+                            <i class="bi bi-search text-muted"></i>
+                            <input type="text" name="q"
+                                class="form-control border-0 shadow-none p-0 bg-transparent search-font"
+                                placeholder="Tìm theo tên sân..." value="{{ q }}">
+                        </div>
+                    </div>
+
+                    <!-- LỌC THEO LOẠI SÂN — CUSTOM DROPDOWN (Pill) -->
+                    <div class="col-12 col-md-3 position-relative" id="sportDropdownWrap">
+                        <!-- HIDDEN INPUT GIỮ GIÁ TRỊ ĐỂ GỬI FORM -->
+                        <input type="hidden" name="court_type" id="sportDropdownValue" value="{{ court_type }}">
+
+                        <!-- TRIGGER BUTTON (click để mở) -->
+                        <button type="button" id="sportDropdownBtn"
+                            class="btn w-100 d-flex align-items-center justify-content-between shadow-none search-pill"
+                            onclick="toggleSportDropdown()">
+                            <span id="sportDropdownLabel" class="text-muted search-font">
+                                {% if court_type == 'badminton' %}🏸 Cầu lông
+                                {% elif court_type == 'football' %}⚽ Bóng đá
+                                {% elif court_type == 'pickleball' %}🏓 Pickleball
+                                {% elif court_type == 'basketball' %}🏀 Bóng rổ
+                                {% elif court_type == 'tennis' %}🎾 Tennis
+                                {% else %}Loại sân
+                                {% endif %}
+                            </span>
+                            <i class="bi bi-chevron-down text-muted" id="sportChevron"
+                                style="transition: transform 0.25s ease;"></i>
+                        </button>
+
+                        <!-- DROPDOWN MENU PANEL -->
+                        <div id="sportDropdownMenu" style="display: none; position: absolute; top: 100%; left: 0; right: 0;
+                                    z-index: 50; margin-top: 8px; min-width: 220px;
+                                    background: #fff; border-radius: 1.5rem;
+                                    box-shadow: 0 10px 40px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.06);
+                                    border: 1px solid #f3f4f6; padding: 6px;
+                                    animation: sportDropFadeIn 0.18s ease;">
+
+                            <!-- MỤC "TẤT CẢ" (xóa filter) -->
+                            <div class="sport-dropdown-item icon-bounce-hover {% if not court_type %}sport-dropdown-active{% endif %}"
+                                data-value="" data-label="Loại sân" onclick="selectSport(this)">
+                                <span class="search-font">🏟️ Tất cả loại sân</span>
+                                {% if not court_type %}<i class="bi bi-check-lg" style="color: var(--primary);"></i>{% endif %}
+                            </div>
+
+                            <!-- CÁC MỤC LOẠI SÂN -->
+                            {% for value, label in court_type_choices %}
+                            <div class="sport-dropdown-item icon-bounce-hover {% if court_type == value %}sport-dropdown-active{% endif %}"
+                                data-value="{{ value }}"
+                                data-label="{% if value == 'badminton' %}🏸 {{ label }}{% elif value == 'football' %}⚽ {{ label }}{% elif value == 'pickleball' %}🏓 {{ label }}{% elif value == 'basketball' %}🏀 {{ label }}{% elif value == 'tennis' %}🎾 {{ label }}{% else %}{{ label }}{% endif %}"
+                                onclick="selectSport(this)">
+                                <span class="search-font">
+                                    {% if value == 'badminton' %}🏸
+                                    {% elif value == 'football' %}⚽
+                                    {% elif value == 'pickleball' %}🏓
+                                    {% elif value == 'basketball' %}🏀
+                                    {% elif value == 'tennis' %}🎾
+                                    {% endif %}
+                                    {{ label }}
+                                </span>
+                                {% if court_type == value %}<i class="bi bi-check-lg"
+                                    style="color: var(--primary);"></i>{% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- LỌC THEO QUẬN/HUYỆN — CUSTOM DROPDOWN (Pill) -->
+                    <div class="col-12 col-md-2 position-relative" id="districtDropdownWrap">
+                        <!-- HIDDEN INPUT GIỮ GIÁ TRỊ ĐỂ GỬI FORM -->
+                        <input type="hidden" name="district" id="districtDropdownValue" value="{{ district }}">
+
+                        <!-- TRIGGER BUTTON (click để mở) -->
+                        <button type="button" id="districtDropdownBtn"
+                            class="btn w-100 d-flex align-items-center justify-content-between shadow-none search-pill"
+                            onclick="toggleDistrictDropdown()">
+                            <span id="districtDropdownLabel" class="text-muted search-font text-truncate">
+                                {% if district %}
+                                    {% for value, label in district_choices %}
+                                        {% if district == value %}📍 {{ label }}{% endif %}
+                                    {% endfor %}
+                                {% else %}
+                                    Khu vực
+                                {% endif %}
+                            </span>
+                            <i class="bi bi-chevron-down text-muted" id="districtChevron"
+                                style="transition: transform 0.25s ease; flex-shrink: 0;"></i>
+                        </button>
+
+                        <!-- DROPDOWN MENU PANEL -->
+                        <div id="districtDropdownMenu" style="display: none; position: absolute; top: 100%; left: 0; right: 0;
+                                    z-index: 50; margin-top: 8px; min-width: 200px; max-height: 240px; overflow-y: auto;
+                                    background: #fff; border-radius: 1.5rem;
+                                    box-shadow: 0 10px 40px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.06);
+                                    border: 1px solid #f3f4f6; padding: 6px;
+                                    animation: sportDropFadeIn 0.18s ease;" class="custom-scrollbar">
+
+                            <!-- MỤC "TẤT CẢ" (xóa filter) -->
+                            <div class="sport-dropdown-item district-dropdown-item icon-bounce-hover {% if not district %}sport-dropdown-active{% endif %}"
+                                data-value="" data-label="Khu vực" onclick="selectDistrict(this)">
+                                <span class="search-font">📍 Tất cả khu vực</span>
+                                {% if not district %}<i class="bi bi-check-lg" style="color: var(--primary);"></i>{% endif %}
+                            </div>
+
+                            <!-- CÁC MỤC QUẬN/HUYỆN -->
+                            {% for value, label in district_choices %}
+                            <div class="sport-dropdown-item district-dropdown-item icon-bounce-hover {% if district == value %}sport-dropdown-active{% endif %}"
+                                data-value="{{ value }}"
+                                data-label="📍 {{ label }}"
+                                onclick="selectDistrict(this)">
+                                <span class="search-font">📍 {{ label }}</span>
+                                {% if district == value %}<i class="bi bi-check-lg"
+                                    style="color: var(--primary);"></i>{% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- LỌC THEO GIÁ TỐI ĐA (Pill) -->
+                    <div class="col-12 col-md-2">
+                        <input type="number" name="price_max"
+                            class="form-control shadow-none search-pill search-font text-muted w-100"
+                            placeholder="Giá tối đa (đ)" value="{{ price_max }}" min="0">
+                    </div>
+
+                    <!-- NÚT TÌM KIẾM CHÍNH -->
+                    <div class="col-12 col-md-2" id="ds-san">
+                        <button type="submit" class="btn btn-search-primary w-100 btn-animate">
+                            <i class="bi bi-search me-2" style="font-size: 1.1rem;"></i> TÌM KIẾM
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- LINK XÓA LỌC -->
+            {% if q or court_type or district or price_max %}
+            <div class="text-center mt-4">
+                <a href="{% url 'courts:court_list' %}" class="btn-search-clear btn-animate">
+                    XÓA BỘ LỌC
+                </a>
+            </div>
+            {% endif %}
+        </form>
+
     </div>
 </section>
 
-<!-- DANH SÁCH SÂN -->
-<section id="ds-san" class="container my-5">
-
-    <!-- FORM TÌM KIẾM VÀ LỌC -->
-    <form method="GET" action="{% url 'courts:court_list' %}#ds-san" class="mb-4">
-        <div class="row g-2 align-items-end">
-
-            <!-- TÌM THEO TÊN SÂN -->
-            <div class="col-12 col-md-3">
-                <input type="text" name="q" class="form-control"
-                       placeholder="Tìm theo tên sân..."
-                       value="{{ q }}">
+<!-- ============================================================
+     TRUST BADGES SECTION
+     ============================================================ -->
+<section style="background: #fff; border-bottom: 1px solid #f0f0f0;">
+    <div class="container py-3">
+        <div class="d-flex justify-content-center align-items-center gap-4 gap-md-5 flex-wrap">
+            <div class="text-muted fw-medium" style="font-size: 0.9rem;">
+                <i class="bi bi-check-circle-fill text-success me-1"></i> Đặt sân tức thì
             </div>
-
-            <!-- LỌC THEO LOẠI SÂN -->
-            <div class="col-6 col-md-2">
-                <select name="court_type" class="form-select">
-                    <option value="">Tất cả môn</option>
-                    {% for value, label in court_type_choices %}
-                        <option value="{{ value }}"
-                            {% if court_type == value %}selected{% endif %}>
-                            {{ label }}
-                        </option>
-                    {% endfor %}
-                </select>
+            <div class="text-muted fw-medium" style="font-size: 0.9rem;">
+                <i class="bi bi-check-circle-fill text-success me-1"></i> Hủy linh hoạt
             </div>
-
-            <!-- LỌC THEO QUẬN -->
-            <div class="col-6 col-md-2">
-                <select name="district" class="form-select">
-                    <option value="">Tất cả quận</option>
-                    {% for value, label in district_choices %}
-                        <option value="{{ value }}"
-                            {% if district == value %}selected{% endif %}>
-                            {{ label }}
-                        </option>
-                    {% endfor %}
-                </select>
+            <div class="text-muted fw-medium" style="font-size: 0.9rem;">
+                <i class="bi bi-check-circle-fill text-success me-1"></i> Thanh toán an toàn
             </div>
-
-            <!-- LỌC THEO GIÁ TỐI ĐA -->
-            <div class="col-6 col-md-2">
-                <input type="number" name="price_max" class="form-control"
-                       placeholder="Giá tối đa (đ)"
-                       value="{{ price_max }}" min="0">
-            </div>
-
-            <!-- NÚT TÌM KIẾM VÀ XÓA LỌC -->
-            <div class="col-6 col-md-3 d-flex gap-2">
-                <button type="submit" class="btn btn-success flex-grow-1">Tìm kiếm</button>
-                <a href="{% url 'courts:court_list' %}" class="btn btn-outline-secondary">Xóa lọc</a>
-            </div>
-
         </div>
-    </form>
+    </div>
+</section>
 
-    <h2 class="fw-bold mb-4">Sân nổi bật</h2>
+<!-- ============================================================
+     DANH SÁCH SÂN — UNIFORM CARD GRID
+     ============================================================ -->
+<section style="background: #f9fafb; padding: 3rem 0;">
+    <div class="container">
 
-    {% if page_obj %}
-        <div class="row g-4">
+        <!-- TIÊU ĐỀ + NÚT XEM TẤT CẢ -->
+        <div class="d-flex align-items-center justify-content-between mb-4 reveal-slide-up">
+            <h2 class="fw-bold mb-0" style="font-size: 1.35rem; color: #111827;">
+                <i class="bi bi-trophy-fill me-2" style="color: var(--primary);"></i>Sân bóng nổi bật
+            </h2>
+            <a href="{% url 'courts:court_list' %}" class="btn btn-outline-success btn-sm rounded-3 px-3 btn-animate">
+                Tất cả sân <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+
+        {% if page_obj %}
+
+        <!-- GRID ĐỀU: 1 → 2 → 4 CỘT RESPONSIVE -->
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+
             {% for court in page_obj %}
-            <div class="col-12 col-md-6">
-                <div class="court-card h-100">
+            <div class="col reveal-slide-up">
+                <div class="court-card h-100 d-flex flex-column" style="border-radius: 16px; overflow: hidden; cursor: pointer;" onclick="window.location.href=`{% url 'courts:court_detail' court.pk %}`">
 
-                    <!-- ẢNH SÂN + NÚT TIM (16/9 cố định) -->
-                    <div class="court-img-wrap">
+                    <!-- ẢNH SÂN (phần trên, 16:10) + NÚT TIM -->
+                    <div class="court-img-wrap" style="aspect-ratio: 16/10;">
                         {% if court.image %}
-                            <img src="{{ court.image.url }}"
-                                 alt="{{ court.name }}">
+                        <img src="{{ court.image.url }}" alt="{{ court.name }}">
                         {% else %}
-                            <div class="court-img-placeholder">
-                                {% if court.court_type == 'badminton' %}🏸
-                                {% elif court.court_type == 'football' %}⚽
-                                {% elif court.court_type == 'pickleball' %}🏓
-                                {% elif court.court_type == 'basketball' %}🏀
-                                {% elif court.court_type == 'tennis' %}🎾
-                                {% else %}🏟️{% endif %}
-                            </div>
+                        <div class="court-img-placeholder">
+                            {% if court.court_type == 'badminton' %}🏸
+                            {% elif court.court_type == 'football' %}⚽
+                            {% elif court.court_type == 'pickleball' %}🏓
+                            {% elif court.court_type == 'basketball' %}🏀
+                            {% elif court.court_type == 'tennis' %}🎾
+                            {% else %}🏟️{% endif %}
+                        </div>
                         {% endif %}
 
-                        <!-- NÚT TIM YÊU THÍCH -->
-                        <form method="POST"
-                              action="{% url 'courts:toggle_favorite' court.pk %}">
+                        <!-- NÚT TIM YÊU THÍCH — GÓC TRÊN PHẢI ẢNH -->
+                        <form method="POST" action="{% url 'courts:toggle_favorite' court.pk %}">
                             {% csrf_token %}
-                            <button type="submit" class="court-fav-btn">
+                            <button type="submit" class="court-fav-btn" onclick="event.stopPropagation();">
                                 {% if court.id in favorited_ids %}
-                                    <i class="bi bi-heart-fill text-danger"></i>
+                                <i class="bi bi-heart-fill text-danger"></i>
                                 {% else %}
-                                    <i class="bi bi-heart text-danger"></i>
+                                <i class="bi bi-heart text-danger"></i>
                                 {% endif %}
                             </button>
                         </form>
-                    </div>
 
-                    <div class="card-body d-flex flex-column">
-                        <!-- TÊN SÂN -->
-                        <h5 class="card-title">{{ court.name }}</h5>
-
-                        <!-- LOẠI SÂN (badge) -->
-                        <span class="badge bg-success mb-2" style="width: fit-content;">
+                        <!-- BADGE LOẠI SÂN — GÓC TRÊN TRÁI ẢNH -->
+                        <span class="position-absolute badge bg-success"
+                            style="top: 10px; left: 10px; font-size: .72rem; border-radius: 6px; padding: .35em .65em;">
                             {{ court.get_court_type_display }}
                         </span>
+                    </div>
+
+                    <!-- NỘI DUNG CARD (phần dưới) -->
+                    <div class="card-body d-flex flex-column p-3">
+
+                        <!-- TÊN SÂN -->
+                        <h5 class="card-title fw-bold mb-1" style="font-size: .95rem;">{{ court.name }}</h5>
 
                         <!-- ĐỊA CHỈ -->
-                        <p class="text-muted small mb-2">
+                        <p class="text-muted mb-2" style="font-size: .82rem;">
                             <i class="bi bi-geo-alt-fill me-1"></i>{{ court.address }}
                         </p>
 
-                        <!-- GIÁ THUÊ -->
-                        <p class="court-price mb-2">
-                            {{ court.price_per_hour|intcomma }}đ
-                            <span class="text-muted fw-normal" style="font-size:.88rem;">/ giờ</span>
-                        </p>
-
-                        <!-- ĐÁNH GIÁ TRUNG BÌNH -->
-                        <p class="mb-3 small">
+                        <!-- ĐÁNH GIÁ -->
+                        <p class="mb-2" style="font-size: .82rem;">
                             {% if court.review_count %}
-                                <i class="bi bi-star-fill text-warning"></i>
-                                <span class="fw-semibold">{{ court.avg_rating|floatformat:1 }}</span>
-                                <span class="text-muted">({{ court.review_count }} lượt)</span>
+                            <i class="bi bi-star-fill text-warning"></i>
+                            <span class="fw-semibold">{{ court.avg_rating|floatformat:1 }}</span>
+                            <span class="text-muted">({{ court.review_count }} lượt)</span>
                             {% else %}
-                                <span class="text-muted">Chưa có đánh giá</span>
+                            <span class="text-muted">Chưa có đánh giá</span>
                             {% endif %}
                         </p>
 
-                        <!-- NÚT XEM CHI TIẾT -->
-                        <a href="{% url 'courts:court_detail' court.pk %}" class="btn btn-outline-success mt-auto">Xem chi tiết</a>
+                        <!-- GIÁ + NÚT BOOK NOW -->
+                        <div class="d-flex align-items-center justify-content-between mt-auto pt-2"
+                            style="border-top: 1px solid #f3f4f6;">
+                            <div>
+                                <span class="fw-bold" style="color: var(--primary); font-size: .95rem;">
+                                    {{ court.price_per_hour|intcomma }}đ
+                                </span>
+                                <span class="text-muted" style="font-size: .78rem;">/ giờ</span>
+                            </div>
+                            <a href="{% url 'courts:court_detail' court.pk %}"
+                                class="btn btn-success btn-sm fw-semibold px-3 btn-animate"
+                                style="border-radius: 10px; font-size: .83rem;"
+                                onclick="event.stopPropagation();">
+                                Book Now
+                            </a>
+                        </div>
+
                     </div>
 
                 </div>
             </div>
             {% endfor %}
+
         </div>
 
         <!-- PHÂN TRANG -->
         {% if page_obj.has_other_pages %}
-        <nav class="mt-4">
+        <nav class="mt-5">
             <ul class="pagination justify-content-center">
                 {% if page_obj.has_previous %}
                 <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ q }}&court_type={{ court_type }}&district={{ district }}&price_max={{ price_max }}">
+                    <a class="page-link"
+                        href="?page={{ page_obj.previous_page_number }}&q={{ q }}&court_type={{ court_type }}&district={{ district }}&price_max={{ price_max }}">
                         &laquo; Trước
                     </a>
                 </li>
                 {% endif %}
                 {% for num in page_obj.paginator.page_range %}
                 <li class="page-item {% if page_obj.number == num %}active{% endif %}">
-                    <a class="page-link" href="?page={{ num }}&q={{ q }}&court_type={{ court_type }}&district={{ district }}&price_max={{ price_max }}">{{ num }}</a>
+                    <a class="page-link"
+                        href="?page={{ num }}&q={{ q }}&court_type={{ court_type }}&district={{ district }}&price_max={{ price_max }}">{{ num }}</a>
                 </li>
                 {% endfor %}
                 {% if page_obj.has_next %}
                 <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ q }}&court_type={{ court_type }}&district={{ district }}&price_max={{ price_max }}">
+                    <a class="page-link"
+                        href="?page={{ page_obj.next_page_number }}&q={{ q }}&court_type={{ court_type }}&district={{ district }}&price_max={{ price_max }}">
                         Sau &raquo;
                     </a>
                 </li>
@@ -183,11 +345,33 @@
         </nav>
         {% endif %}
 
-    {% else %}
+        {% else %}
         <!-- KHÔNG TÌM THẤY KẾT QUẢ -->
         {% include 'partials/empty_state.html' with icon='bi-search' title='Không tìm thấy sân phù hợp' description='Thử thay đổi bộ lọc hoặc tìm kiếm với từ khóa khác.' cta_url='/' cta_text='Xóa bộ lọc' %}
-    {% endif %}
+        {% endif %}
 
+    </div>
 </section>
+
+<!-- Intersection Observer for Scroll Animations -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('revealed');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, {
+        threshold: 0.1,
+        rootMargin: "0px 0px -50px 0px"
+    });
+
+    document.querySelectorAll('.reveal-slide-up').forEach((el) => {
+        observer.observe(el);
+    });
+});
+</script>
 
 {% endblock %}

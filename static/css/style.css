@@ -498,3 +498,281 @@ body {
     z-index: 1;
     animation: none;
 }
+
+/* ============================================================
+   CUSTOM SPORT DROPDOWN (trang chủ — lọc loại sân)
+   ============================================================ */
+
+/* ANIMATION: panel xuất hiện */
+@keyframes sportDropFadeIn {
+    0%   { opacity: 0; transform: translateY(-6px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+/* MỤC TRONG DROPDOWN */
+.sport-dropdown-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: .55rem .9rem;
+    font-size: .9rem;
+    color: #374151;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+    user-select: none;
+}
+
+/* HOVER — nền xanh lá nhạt */
+.sport-dropdown-item:hover {
+    background-color: #ecfdf5;
+    color: #065f46;
+}
+
+/* ACTIVE/SELECTED — text xanh đậm, font hơi đậm */
+.sport-dropdown-item.sport-dropdown-active {
+    color: var(--primary);
+    font-weight: 600;
+    background-color: rgba(21, 128, 61, 0.04);
+}
+.sport-dropdown-item.sport-dropdown-active:hover {
+    background-color: #ecfdf5;
+}
+
+/* CHEVRON XOAY KHI MỞ */
+#sportChevron.chevron-rotated {
+    transform: rotate(180deg);
+}
+
+/* ============================================================
+   NEW SEARCH BAR STYLES (Oswald font, floating panel, pills)
+   ============================================================ */
+.search-container-outer {
+    background-color: #ffffff;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    border-radius: 2.5rem;
+    z-index: 50;
+    position: relative;
+    padding: 0.75rem 1.5rem;
+    max-width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: -3rem;
+}
+
+.search-font {
+    font-family: 'Montserrat', sans-serif !important;
+}
+
+.search-pill {
+    border-radius: 50rem !important;
+    border: 1px solid #f3f4f6 !important;
+    padding: 0.5rem 1.5rem !important;
+    height: 100%;
+    background-color: transparent;
+    font-weight: 600;
+}
+
+.search-pill:focus {
+    border-color: #059669 !important;
+    box-shadow: 0 0 0 0.25rem rgba(5, 150, 105, 0.25) !important;
+}
+
+.btn-search-primary {
+    background-color: #059669 !important;
+    border-color: #059669 !important;
+    color: white !important;
+    border-radius: 50rem !important;
+    font-family: 'Montserrat', sans-serif !important;
+    font-weight: 700 !important;
+    padding: 0.5rem 2rem !important;
+    white-space: nowrap !important;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+    height: 100%;
+}
+
+.btn-search-primary:hover {
+    background-color: #047857 !important;
+    border-color: #047857 !important;
+}
+
+.btn-search-clear {
+    background-color: #f3f4f6 !important;
+    color: #4b5563 !important;
+    border-radius: 1rem !important;
+    font-family: 'Montserrat', sans-serif !important;
+    font-weight: 600 !important;
+    padding: 0.5rem 1.5rem !important;
+    text-decoration: none;
+    display: inline-block;
+    transition: background-color 0.2s;
+}
+
+.btn-search-clear:hover {
+    background-color: #e5e7eb !important;
+    color: #374151 !important;
+}
+
+/* ============================================================
+   UI/UX ANIMATIONS & MICRO-INTERACTIONS
+   ============================================================ */
+
+/* 1. Buttons - Scale on hover/active */
+.btn-animate {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out !important;
+}
+.btn-animate:hover {
+    transform: scale(1.02);
+    box-shadow: inset 0 0 10px rgba(255,255,255,0.2), 0 4px 15px rgba(5, 150, 105, 0.3) !important;
+}
+.btn-animate:active {
+    transform: scale(0.95);
+}
+
+/* 2. Icons hover bounce/rotate */
+.icon-bounce-hover:hover i {
+    animation: iconBounce 0.4s ease;
+}
+@keyframes iconBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+}
+
+/* 3. Cards Lift Effect */
+.court-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.court-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* 4. Notification Dot Pulse */
+.notify-dot {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 8px;
+    height: 8px;
+    background-color: #ef4444;
+    border-radius: 50%;
+    animation: pulseDot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+@keyframes pulseDot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: .5; transform: scale(1.2); }
+}
+
+/* 5. Scroll Animations (Reveal) */
+.reveal-slide-up {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+.reveal-slide-up.revealed {
+    opacity: 1;
+    transform: translateY(0);
+}
+.col.reveal-slide-up:nth-child(4n+1) { transition-delay: 0s; }
+.col.reveal-slide-up:nth-child(4n+2) { transition-delay: 0.1s; }
+.col.reveal-slide-up:nth-child(4n+3) { transition-delay: 0.2s; }
+.col.reveal-slide-up:nth-child(4n+4) { transition-delay: 0.3s; }
+
+/* 6. Skeleton Loading UI */
+.skeleton-box {
+    background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+    background-size: 200% 100%;
+    animation: skeletonLoading 1.5s infinite;
+    border-radius: 4px;
+}
+@keyframes skeletonLoading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* 7. Page Transition Fade-in */
+.page-fade-in {
+    animation: pageFadeIn 0.5s ease-out forwards;
+}
+
+/* 8. Hero Animated Gradient Mesh Background */
+.hero-animated-bg {
+    background: linear-gradient(-45deg, #f0fdf4, #e0f2fe, #f5f3ff, #ecfdf5);
+    background-size: 400% 400%;
+    animation: gradientMesh 12s ease infinite;
+    position: relative;
+}
+
+@keyframes gradientMesh {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* 9. Navbar Links Hover & Active State Refinement */
+.navbar-nav .nav-link {
+    position: relative;
+    transition: all 0.3s ease-in-out !important;
+    display: inline-flex !important;
+    align-items: center;
+}
+.navbar-nav .nav-link i {
+    margin-right: 0.25rem !important;
+    transition: margin-right 0.3s ease-in-out !important;
+}
+
+/* Hover State */
+.navbar-nav .nav-link:not(.dropdown-toggle):hover {
+    letter-spacing: 0.05em;
+    color: #ffffff !important;
+}
+.navbar-nav .nav-link:not(.dropdown-toggle):hover i {
+    margin-right: 0.6rem !important;
+}
+
+/* Active State */
+.navbar-nav .nav-link.active-link {
+    color: #ffffff !important;
+    font-weight: 700;
+}
+.navbar-nav .nav-link.active-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: #ffffff;
+    border-radius: 2px;
+    transition: width 0.3s ease-in-out;
+}
+
+/* 10. Custom Scrollbar for Dropdown Panels */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #d1d5db;
+    border-radius: 20px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: #9ca3af;
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.footer-link {
+    transition: color 0.3s;
+}
+.footer-link:hover {
+    color: #fff !important;
+    text-decoration: underline !important;
+}

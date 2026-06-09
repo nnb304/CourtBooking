@@ -1,106 +1,585 @@
-{% extends 'base.html' %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng ký — CourtBooking</title>
 
-{% block title %}Đăng ký — CourtBooking{% endblock %}
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Google Fonts — Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-{% block content %}
-<div class="container">
-<div class="row justify-content-center mt-5">
-    <div class="col-md-5">
-        <div class="card shadow-sm">
-            <div class="card-body p-4">
-                <h4 class="card-title text-center mb-3" style="color:#1b5e20;">
-                    Tạo tài khoản
-                </h4>
+    <style>
+        /* ===== BIẾN MÀU CHÍNH ===== */
+        :root {
+            --cb-dark: #1a2332;
+            --cb-green: #1b5e20;
+            --cb-green-light: #2e7d32;
+            --cb-accent: #4caf50;
+            --cb-overlay: rgba(15, 23, 42, 0.82);
+            --cb-card-bg: #ffffff;
+            --cb-border: #e2e8f0;
+            --cb-text-muted: #94a3b8;
+            --cb-text-body: #334155;
+            --cb-radius: 16px;
+            --cb-radius-sm: 10px;
+            --cb-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);
+        }
 
-                <!-- TAB CHỌN ROLE -->
-                <ul class="nav nav-pills nav-fill mb-2" id="registerTab">
-                    <li class="nav-item">
-                        <button class="nav-link active" id="tab-player"
-                                type="button" onclick="setRole('player')">
-                            ⚽ Người chơi
-                        </button>
-                    </li>
-                    <li class="nav-item">
-                        <button class="nav-link" id="tab-owner"
-                                type="button" onclick="setRole('owner')">
-                            🏟️ Chủ sân
-                        </button>
-                    </li>
-                </ul>
+        /* ===== RESET & NỀN TRANG ===== */
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body {
+            margin: 0; padding: 0;
+            height: 100%; width: 100%;
+            font-family: 'Inter', sans-serif;
+        }
 
-                <!-- MÔ TẢ NGẮN THEO ROLE ĐANG CHỌN -->
-                <p class="text-center text-muted small mb-3" id="role_desc">
-                    Tìm và đặt sân thể thao dễ dàng
-                </p>
+        /* NỀN OVERLAY TỐI */
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 600px 400px at 20% 30%, rgba(76, 175, 80, 0.08), transparent),
+                radial-gradient(ellipse 500px 350px at 80% 70%, rgba(27, 94, 32, 0.06), transparent);
+            pointer-events: none;
+            z-index: 0;
+        }
 
-                <!-- THÔNG BÁO LỖI -->
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="alert alert-danger alert-dismissible fade show py-2" role="alert">
-                            {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    {% endfor %}
-                {% endif %}
+        /* ===== CONTAINER CĂN GIỮA ===== */
+        .register-wrapper {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 32px 16px;
+        }
 
-                <form method="POST">
-                    {% csrf_token %}
-                    <!-- HIDDEN INPUT ROLE — JS điền khi click tab -->
-                    <input type="hidden" name="role" id="role_input" value="player">
+        /* ===== CARD POPUP ===== */
+        .register-card {
+            background: var(--cb-card-bg);
+            border-radius: var(--cb-radius);
+            box-shadow: var(--cb-shadow);
+            width: 100%;
+            max-width: 540px;
+            padding: 32px 32px 24px;
+            animation: cardSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            transform: translateY(30px) scale(0.97);
+        }
+        @keyframes cardSlideUp {
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
 
-                    {% for field in form %}
-                        <div class="mb-3">
-                            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-                            {{ field }}
-                            {% if field.errors %}
-                                <div class="text-danger small mt-1">
-                                    {% for error in field.errors %}{{ error }}{% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-                    {% endfor %}
+        /* ===== LOGO & TIÊU ĐỀ ===== */
+        .register-brand {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .register-brand .brand-icon {
+            width: 48px; height: 48px;
+            background: linear-gradient(135deg, var(--cb-green), var(--cb-accent));
+            border-radius: 13px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 14px rgba(76, 175, 80, 0.3);
+        }
+        .register-brand .brand-icon i {
+            font-size: 24px;
+            color: #fff;
+        }
+        .register-brand h1 {
+            font-size: 21px;
+            font-weight: 700;
+            color: var(--cb-dark);
+            margin: 0 0 3px;
+        }
+        .register-brand p {
+            font-size: 13px;
+            color: var(--cb-text-muted);
+            margin: 0;
+        }
 
-                    <div class="d-grid mt-3">
-                        <button type="submit" class="btn btn-success"
-                                style="background-color:#1b5e20; border-color:#1b5e20;">
-                            Đăng ký
-                        </button>
-                    </div>
-                </form>
+        /* ===== TIÊU ĐỀ CHỌN ROLE ===== */
+        .role-heading {
+            text-align: center;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: var(--cb-text-muted);
+            margin-bottom: 12px;
+        }
 
-                <hr>
-                <p class="text-center mb-0">
-                    Đã có tài khoản?
-                    <a href="{% url 'accounts:login' %}" style="color:#1b5e20;">Đăng nhập</a>
-                </p>
+        /* ===== TABS CHỌN ROLE (CARD STYLE) ===== */
+        .role-cards {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 22px;
+        }
+        .role-card {
+            flex: 1;
+            position: relative;
+            border: 2px solid var(--cb-border);
+            border-radius: var(--cb-radius-sm);
+            padding: 16px 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            background: #fff;
+        }
+        .role-card:hover {
+            border-color: #cbd5e1;
+            background: #f8fafc;
+        }
+        .role-card.active {
+            border-color: var(--cb-accent);
+            background: #f0fdf4;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.12);
+        }
+        .role-card .role-icon {
+            width: 40px; height: 40px;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+            font-size: 20px;
+            background: #f1f5f9;
+            color: var(--cb-text-muted);
+            transition: all 0.25s ease;
+        }
+        .role-card.active .role-icon {
+            background: linear-gradient(135deg, var(--cb-green), var(--cb-accent));
+            color: #fff;
+        }
+        .role-card .role-name {
+            display: block;
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--cb-text-body);
+            margin-bottom: 2px;
+        }
+        .role-card .role-desc {
+            font-size: 11px;
+            color: var(--cb-text-muted);
+        }
+        /* DẤU CHECK GÓC PHẢI */
+        .role-card .check-badge {
+            position: absolute;
+            top: 8px; right: 8px;
+            width: 22px; height: 22px;
+            border-radius: 50%;
+            background: var(--cb-accent);
+            color: #fff;
+            font-size: 12px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(76, 175, 80, 0.3);
+        }
+        .role-card.active .check-badge {
+            display: flex;
+        }
+
+        /* ===== INPUT FIELDS ===== */
+        .form-group {
+            margin-bottom: 8px;
+        }
+        .input-group {
+            border: 1.5px solid var(--cb-border);
+            border-radius: var(--cb-radius-sm);
+            overflow: hidden;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .input-group:focus-within {
+            border-color: var(--cb-accent);
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.12);
+        }
+        .input-group .input-group-text {
+            background: #f8fafc;
+            border: none;
+            color: var(--cb-text-muted);
+            padding: 9px 12px;
+            font-size: 15px;
+        }
+        .input-group .form-control {
+            border: none;
+            padding: 10px 12px 10px 8px;
+            font-size: 13.5px;
+            color: var(--cb-text-body);
+            background: transparent;
+        }
+        .input-group .form-control:focus {
+            box-shadow: none;
+            outline: none;
+        }
+        .input-group .form-control::placeholder {
+            color: #b0bec5;
+        }
+
+        /* ===== TOGGLE HIỆN/ẨN MẬT KHẨU ===== */
+        .password-toggle {
+            background: transparent;
+            border: none;
+            color: var(--cb-text-muted);
+            padding: 10px 14px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .password-toggle:hover { color: var(--cb-text-body); }
+
+        /* ===== ALERT LỖI ===== */
+        .register-errors {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            border-radius: var(--cb-radius-sm);
+            padding: 12px 14px;
+            margin-bottom: 14px;
+            font-size: 13px;
+            font-weight: 500;
+            animation: shakeError 0.4s ease;
+        }
+        .register-errors ul {
+            margin: 0; padding: 0;
+            list-style: none;
+        }
+        .register-errors ul li {
+            padding: 2px 0;
+        }
+        .register-errors ul li::before {
+            content: '•';
+            margin-right: 6px;
+            color: #ef4444;
+        }
+        @keyframes shakeError {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-6px); }
+            40% { transform: translateX(6px); }
+            60% { transform: translateX(-4px); }
+            80% { transform: translateX(4px); }
+        }
+
+        /* ===== NÚT ĐĂNG KÝ ===== */
+        .btn-register {
+            width: 100%;
+            padding: 13px;
+            border: none;
+            border-radius: var(--cb-radius-sm);
+            background: linear-gradient(135deg, var(--cb-green), var(--cb-accent));
+            color: #fff;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+        .btn-register:hover {
+            background: linear-gradient(135deg, var(--cb-green-light), #66bb6a);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(27, 94, 32, 0.35);
+        }
+        .btn-register:active {
+            transform: translateY(0);
+        }
+
+        /* ===== LINKS DƯỚI CÙNG ===== */
+        .register-footer {
+            text-align: center;
+            margin-top: 22px;
+            padding-top: 18px;
+            border-top: 1px solid var(--cb-border);
+        }
+        .register-footer .login-link {
+            font-size: 13px;
+            font-weight: 700;
+            color: #2563eb;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: color 0.2s;
+        }
+        .register-footer .login-link:hover {
+            color: #1d4ed8;
+        }
+
+        /* ===== HIỆU ỨNG NỀN ===== */
+        .bg-dot {
+            position: fixed;
+            border-radius: 50%;
+            background: rgba(76, 175, 80, 0.06);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .bg-dot-1 { width: 300px; height: 300px; top: -80px; left: -80px; }
+        .bg-dot-2 { width: 200px; height: 200px; bottom: -60px; right: -40px; }
+        .bg-dot-3 { width: 120px; height: 120px; top: 40%; right: 10%; background: rgba(27, 94, 32, 0.04); }
+
+        /* ===== CHỈ BÁO ĐỘ MẠNH MẬT KHẨU ===== */
+        .password-strength {
+            height: 3px;
+            border-radius: 2px;
+            background: #e2e8f0;
+            margin-top: 6px;
+            overflow: hidden;
+        }
+        .password-strength .bar {
+            height: 100%;
+            width: 0;
+            border-radius: 2px;
+            transition: width 0.3s ease, background 0.3s ease;
+        }
+        .strength-text {
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 3px;
+            color: var(--cb-text-muted);
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 520px) {
+            .register-card {
+                padding: 24px 18px 20px;
+                border-radius: 12px;
+            }
+            .role-cards { flex-direction: column; gap: 8px; }
+            .register-brand h1 { font-size: 19px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- HIỆU ỨNG NỀN -->
+<div class="bg-dot bg-dot-1"></div>
+<div class="bg-dot bg-dot-2"></div>
+<div class="bg-dot bg-dot-3"></div>
+
+<!-- WRAPPER CĂN GIỮA MÀN HÌNH -->
+<div class="register-wrapper">
+    <div class="register-card">
+
+        <!-- LOGO & TIÊU ĐỀ -->
+        <div class="register-brand">
+            <div class="brand-icon">
+                <i class="bi bi-calendar2-check"></i>
+            </div>
+            <h1>Tạo tài khoản mới</h1>
+            <p>Tham gia CourtBooking — đặt sân chỉ trong vài giây</p>
+        </div>
+
+        <!-- TIÊU ĐỀ CHỌN ROLE -->
+        <div class="role-heading">Bạn đăng ký với tư cách:</div>
+
+        <!-- TABS CHỌN ROLE (CARD STYLE) -->
+        <div class="role-cards" id="roleCards">
+            <div class="role-card active" data-role="player" onclick="switchRole(this, 'player')">
+                <div class="check-badge"><i class="bi bi-check-lg"></i></div>
+                <div class="role-icon"><i class="bi bi-person"></i></div>
+                <span class="role-name">Người dùng</span>
+                <span class="role-desc">Đặt sân & chơi thể thao</span>
+            </div>
+            <div class="role-card" data-role="owner" onclick="switchRole(this, 'owner')">
+                <div class="check-badge"><i class="bi bi-check-lg"></i></div>
+                <div class="role-icon"><i class="bi bi-building"></i></div>
+                <span class="role-name">Chủ sân</span>
+                <span class="role-desc">Đăng sân & quản lý booking</span>
             </div>
         </div>
+
+        <!-- FORM ĐĂNG KÝ -->
+        <form method="POST" autocomplete="off">
+            {% csrf_token %}
+            <!-- HIDDEN INPUT ROLE — JS điền khi click card -->
+            <input type="hidden" name="role" id="role_input" value="player">
+
+            <!-- HIỂN THỊ LỖI -->
+            {% if form.errors %}
+            <div class="register-errors">
+                <ul>
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            {% if messages %}
+            <div class="register-errors">
+                <ul>
+                    {% for message in messages %}
+                    <li>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <!-- HÀNG 1: TÊN ĐĂNG NHẬP (FULL WIDTH) -->
+            <div class="form-group">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-person"></i></span>
+                    <input type="text" class="form-control" id="id_username"
+                           name="username" placeholder="Tên đăng nhập"
+                           value="{{ form.username.value|default:'' }}" required>
+                </div>
+            </div>
+
+            <!-- HÀNG 2: EMAIL + SỐ ĐIỆN THOẠI -->
+            <div class="row g-2 mb-2">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                        <input type="email" class="form-control" id="id_email"
+                               name="email" placeholder="Email"
+                               value="{{ form.email.value|default:'' }}" required>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                        <input type="text" class="form-control" id="id_phone"
+                               name="phone" placeholder="Số điện thoại"
+                               value="{{ form.phone.value|default:'' }}">
+                    </div>
+                </div>
+            </div>
+
+            <!-- HÀNG 3: MẬT KHẨU + XÁC NHẬN MẬT KHẨU -->
+            <div class="row g-2 mb-2">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                        <input type="password" class="form-control" id="id_password1"
+                               name="password1" placeholder="Mật khẩu (8+ ký tự)" required>
+                        <button type="button" class="password-toggle" onclick="togglePassword('id_password1', 'toggleIcon1')">
+                            <i class="bi bi-eye" id="toggleIcon1"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+                        <input type="password" class="form-control" id="id_password2"
+                               name="password2" placeholder="Nhập lại mật khẩu" required>
+                        <button type="button" class="password-toggle" onclick="togglePassword('id_password2', 'toggleIcon2')">
+                            <i class="bi bi-eye" id="toggleIcon2"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NÚT ĐĂNG KÝ -->
+            <button type="submit" class="btn-register">
+                Hoàn tất đăng ký
+            </button>
+        </form>
+
+        <!-- LINK ĐĂNG NHẬP -->
+        <div class="register-footer">
+            <a href="{% url 'accounts:login' %}" class="login-link">
+                Đã có tài khoản? Đăng nhập
+            </a>
+        </div>
+
     </div>
 </div>
-</div>
+
+<!-- Bootstrap 5 JS Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    // ĐỔI ROLE, ACTIVE TAB VÀ MÔ TẢ KHI CLICK
-    const roleDesc = {
-        player: 'Tìm và đặt sân thể thao dễ dàng',
-        owner:  'Đăng sân và quản lý lịch đặt của bạn',
-    };
-    function setRole(role) {
+    // CHUYỂN ĐỔI ROLE KHI CLICK
+    function switchRole(card, role) {
+        var cards = document.querySelectorAll('.role-card');
+        for (var i = 0; i < cards.length; i++) {
+            cards[i].classList.remove('active');
+        }
+        card.classList.add('active');
         document.getElementById('role_input').value = role;
-        document.getElementById('tab-player').classList.toggle('active', role === 'player');
-        document.getElementById('tab-owner').classList.toggle('active', role === 'owner');
-        document.getElementById('role_desc').textContent = roleDesc[role];
+    }
+
+    // TOGGLE HIỆN / ẨN MẬT KHẨU
+    function togglePassword(inputId, iconId) {
+        var passwordInput = document.getElementById(inputId);
+        var toggleIcon = document.getElementById(iconId);
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            toggleIcon.classList.remove('bi-eye');
+            toggleIcon.classList.add('bi-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            toggleIcon.classList.remove('bi-eye-slash');
+            toggleIcon.classList.add('bi-eye');
+        }
+    }
+
+    // KIỂM TRA ĐỘ MẠNH MẬT KHẨU
+    function checkStrength(password) {
+        var bar = document.getElementById('strengthBar');
+        var text = document.getElementById('strengthText');
+        var score = 0;
+
+        if (password.length === 0) {
+            bar.style.width = '0';
+            text.textContent = '';
+            return;
+        }
+        if (password.length >= 8) score++;
+        if (password.length >= 12) score++;
+        if (/[A-Z]/.test(password)) score++;
+        if (/[0-9]/.test(password)) score++;
+        if (/[^A-Za-z0-9]/.test(password)) score++;
+
+        if (score <= 1) {
+            bar.style.width = '20%';
+            bar.style.background = '#ef4444';
+            text.textContent = 'Yếu';
+            text.style.color = '#ef4444';
+        } else if (score <= 2) {
+            bar.style.width = '40%';
+            bar.style.background = '#f59e0b';
+            text.textContent = 'Trung bình';
+            text.style.color = '#f59e0b';
+        } else if (score <= 3) {
+            bar.style.width = '70%';
+            bar.style.background = '#3b82f6';
+            text.textContent = 'Khá';
+            text.style.color = '#3b82f6';
+        } else {
+            bar.style.width = '100%';
+            bar.style.background = '#22c55e';
+            text.textContent = 'Mạnh';
+            text.style.color = '#22c55e';
+        }
     }
 </script>
 
-<style>
-    #registerTab .nav-link.active {
-        background-color: #1b5e20;
-        color: #fff;
-    }
-    #registerTab .nav-link:not(.active) {
-        color: #1b5e20;
-        border: 1px solid #1b5e20;
-    }
-</style>
-{% endblock %}
+</body>
+</html>
