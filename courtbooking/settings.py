@@ -122,3 +122,13 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # ĐƯỜNG DẪN LOGIN
 LOGIN_URL = '/accounts/login/'
+
+import os
+
+if os.environ.get('RENDER'):
+    DEBUG = False
+    ALLOWED_HOSTS = [os.environ.get('RENDER_EXTERNAL_HOSTNAME')]
+    CSRF_TRUSTED_ORIGINS = [f"https://{os.environ.get('RENDER_EXTERNAL_HOSTNAME')}"]
+    MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+    STATIC_ROOT = BASE_DIR / 'staticfiles'
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
