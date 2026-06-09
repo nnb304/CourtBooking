@@ -3,6 +3,7 @@ from datetime import date, datetime, timedelta
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from django.db import IntegrityError
 from django.shortcuts import get_object_or_404, redirect, render
 
 from courts.models import Court
@@ -58,7 +59,16 @@ def booking_create(request, court_id):
                 except Promotion.DoesNotExist:
                     pass  # mã không tồn tại hoặc đã bị xóa → bỏ qua
 
-            booking.save()
+            # LƯU BOOKING — bọc IntegrityError đề phòng 2 user đặt cùng lúc (Lớp 2)
+            try:
+                booking.save()
+            except IntegrityError:
+                messages.error(
+                    request,
+                    'Khung giờ vừa được người khác đặt, vui lòng chọn khung giờ khác.'
+                )
+                return redirect('bookings:booking_create', court_id=court.pk)
+
             messages.success(request, f'Đặt sân "{court.name}" thành công! Vui lòng thanh toán để xác nhận.')
             return redirect('payments:payment_process', booking_id=booking.pk)
 
