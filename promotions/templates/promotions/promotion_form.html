@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ action_text }} — CourtBooking{% endblock %}
+
+{% block content %}
+<div class="container my-5" style="max-width: 640px;">
+
+    <!-- TIÊU ĐỀ -->
+    <div class="mb-4">
+        <h2 class="fw-bold mb-1" style="font-family:'Montserrat',sans-serif; color:#111827;">
+            <i class="bi bi-scissors me-2" style="color:var(--primary);"></i>{{ action_text }}
+        </h2>
+        <a href="{% url 'promotions:promotion_list' %}" class="text-muted" style="font-size:.88rem; text-decoration:none;">
+            <i class="bi bi-arrow-left me-1"></i>Quay lại danh sách
+        </a>
+    </div>
+
+    <!-- FORM -->
+    <div class="card border-0" style="border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,.08);">
+        <div class="card-body p-4">
+            <form method="POST">
+                {% csrf_token %}
+
+                <!-- LỖI TOÀN FORM -->
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger rounded-3 mb-3">
+                    {% for error in form.non_field_errors %}
+                        <div>{{ error }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- MÃ KHUYẾN MÃI -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">{{ form.code.label }}</label>
+                    {{ form.code }}
+                    {% if form.code.errors %}
+                    <div class="text-danger small mt-1">
+                        {% for e in form.code.errors %}{{ e }}{% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- MÔ TẢ -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">{{ form.description.label }}</label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                    <div class="text-danger small mt-1">
+                        {% for e in form.description.errors %}{{ e }}{% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- LOẠI GIẢM + GIÁ TRỊ (2 cột) -->
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">{{ form.discount_type.label }}</label>
+                        {{ form.discount_type }}
+                        {% if form.discount_type.errors %}
+                        <div class="text-danger small mt-1">
+                            {% for e in form.discount_type.errors %}{{ e }}{% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">{{ form.discount_value.label }}</label>
+                        {{ form.discount_value }}
+                        {% if form.discount_value.errors %}
+                        <div class="text-danger small mt-1">
+                            {% for e in form.discount_value.errors %}{{ e }}{% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- NGÀY BẮT ĐẦU + KẾT THÚC (2 cột) -->
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">{{ form.start_date.label }}</label>
+                        {{ form.start_date }}
+                        {% if form.start_date.errors %}
+                        <div class="text-danger small mt-1">
+                            {% for e in form.start_date.errors %}{{ e }}{% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">{{ form.end_date.label }}</label>
+                        {{ form.end_date }}
+                        {% if form.end_date.errors %}
+                        <div class="text-danger small mt-1">
+                            {% for e in form.end_date.errors %}{{ e }}{% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- ĐANG HOẠT ĐỘNG -->
+                <div class="mb-4">
+                    <div class="form-check">
+                        {{ form.is_active }}
+                        <label class="form-check-label fw-semibold" for="{{ form.is_active.id_for_label }}">
+                            {{ form.is_active.label }}
+                        </label>
+                    </div>
+                </div>
+
+                <!-- NÚT LƯU / HỦY -->
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-success flex-grow-1 fw-semibold py-2"
+                            style="border-radius:10px;">
+                        <i class="bi bi-check-circle me-1"></i>Lưu
+                    </button>
+                    <a href="{% url 'promotions:promotion_list' %}"
+                       class="btn btn-outline-secondary px-4"
+                       style="border-radius:10px;">
+                        Hủy
+                    </a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

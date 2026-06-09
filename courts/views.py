@@ -160,11 +160,24 @@ def court_update(request, pk):
         messages.error(request, 'Bạn không có quyền sửa sân này.')
         return redirect('courts:my_court_list')
 
+    # SÂN ĐÃ DUYỆT: yêu cầu xác nhận trước khi cho sửa
+    if court.is_active and request.method == 'GET' and request.GET.get('confirm') != '1':
+        return render(request, 'courts/court_edit_confirm.html', {'court': court})
+
     if request.method == 'POST':
         form = CourtForm(request.POST, request.FILES, instance=court)
         if form.is_valid():
-            form.save()
-            messages.success(request, f'Đã cập nhật sân "{court.name}".')
+            updated = form.save(commit=False)
+            # NẾU SÂN ĐANG ACTIVE, SAU KHI SỬA CẦN DUYỆT LẠI
+            if court.is_active:
+                updated.is_active = False
+                messages.warning(
+                    request,
+                    f'Đã cập nhật sân "{court.name}". Sân sẽ ẩn khỏi danh sách và chờ admin duyệt lại.'
+                )
+            else:
+                messages.success(request, f'Đã cập nhật sân "{court.name}".')
+            updated.save()
             return redirect('courts:my_court_list')
     else:
         form = CourtForm(instance=court)

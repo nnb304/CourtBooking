@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}Xác nhận chỉnh sửa sân — CourtBooking{% endblock %}
+
+{% block content %}
+<div class="container my-5" style="max-width: 520px;">
+    <div class="card border-0" style="border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,.08);">
+        <div class="card-body p-5 text-center">
+
+            <!-- ICON CẢNH BÁO -->
+            <div class="mb-3" style="font-size:3rem;">⚠️</div>
+
+            <h4 class="fw-bold mb-2">Sân đang hoạt động</h4>
+
+            <p class="text-muted mb-1">Bạn sắp chỉnh sửa sân:</p>
+            <p class="fw-bold mb-3" style="font-size:1.1rem; color:var(--primary); font-family:'Montserrat',sans-serif;">
+                {{ court.name }}
+            </p>
+
+            <!-- THÔNG BÁO HẬU QUẢ -->
+            <div class="alert mb-4 text-start"
+                 style="background:#fef9c3; border:1px solid #fde047; border-radius:12px; color:#78350f;">
+                <i class="bi bi-info-circle-fill me-2" style="color:#d97706;"></i>
+                <strong>Lưu ý:</strong> Sau khi lưu thay đổi, sân sẽ bị <strong>ẩn khỏi danh sách</strong>
+                và cần <strong>admin duyệt lại</strong> trước khi hiển thị cho khách.
+            </div>
+
+            <div class="d-flex gap-2 justify-content-center">
+                <a href="{% url 'courts:court_update' court.pk %}?confirm=1"
+                   class="btn btn-warning fw-semibold px-4"
+                   style="border-radius:10px; color:#78350f;">
+                    <i class="bi bi-pencil me-1"></i>Tôi hiểu, tiếp tục chỉnh sửa
+                </a>
+                <a href="{% url 'courts:my_court_list' %}"
+                   class="btn btn-outline-secondary px-4"
+                   style="border-radius:10px;">
+                    Hủy
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

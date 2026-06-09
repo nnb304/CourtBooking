@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Quản lý mã khuyến mãi — CourtBooking{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+
+    <!-- TIÊU ĐỀ + NÚT THÊM -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h2 class="fw-bold mb-1" style="font-family:'Montserrat',sans-serif; color:#111827;">
+                <i class="bi bi-scissors me-2" style="color:var(--primary);"></i>Mã khuyến mãi
+            </h2>
+            <p class="text-muted mb-0" style="font-size:.9rem;">
+                Quản lý toàn bộ mã giảm giá cho khách hàng
+            </p>
+        </div>
+        <a href="{% url 'promotions:promotion_create' %}"
+           class="btn btn-success fw-semibold px-4"
+           style="border-radius:10px;">
+            <i class="bi bi-plus-lg me-1"></i>Tạo mã mới
+        </a>
+    </div>
+
+    {% if page_obj %}
+    <div class="card border-0" style="border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,.07);">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-cb mb-0">
+                    <thead>
+                        <tr>
+                            <th>Mã</th>
+                            <th>Mô tả</th>
+                            <th>Loại giảm</th>
+                            <th>Giá trị</th>
+                            <th>Bắt đầu</th>
+                            <th>Kết thúc</th>
+                            <th>Trạng thái</th>
+                            <th class="text-end">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for promo in page_obj %}
+                        <tr>
+                            <td>
+                                <span class="fw-bold" style="color:var(--primary); font-family:'Montserrat',sans-serif; font-size:.93rem;">
+                                    {{ promo.code }}
+                                </span>
+                            </td>
+                            <td class="text-muted" style="font-size:.88rem; max-width:200px;">
+                                {{ promo.description|default:"—" }}
+                            </td>
+                            <td>
+                                {% if promo.discount_type == 'percent' %}
+                                    <span class="badge" style="background:#fef9c3; color:#a16207; border-radius:6px;">% Phần trăm</span>
+                                {% else %}
+                                    <span class="badge" style="background:#e0f2fe; color:#0369a1; border-radius:6px;">Số tiền cố định</span>
+                                {% endif %}
+                            </td>
+                            <td class="fw-semibold">
+                                {% if promo.discount_type == 'percent' %}
+                                    {{ promo.discount_value|floatformat:"0" }}%
+                                {% else %}
+                                    {{ promo.discount_value|floatformat:"0"|intcomma }}đ
+                                {% endif %}
+                            </td>
+                            <td style="font-size:.88rem;">{{ promo.start_date|date:"d/m/Y H:i" }}</td>
+                            <td style="font-size:.88rem;">{{ promo.end_date|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                {% if promo.is_valid_now %}
+                                    <span class="badge-status" style="background:#dcfce7; color:#15803d;">Đang hiệu lực</span>
+                                {% elif not promo.is_active %}
+                                    <span class="badge-status" style="background:#f3f4f6; color:#6b7280;">Tắt</span>
+                                {% else %}
+                                    <span class="badge-status" style="background:#fef2f2; color:#dc2626;">Hết hạn</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <a href="{% url 'promotions:promotion_update' promo.pk %}"
+                                   class="btn btn-sm btn-outline-success me-1"
+                                   style="border-radius:8px;">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{% url 'promotions:promotion_delete' promo.pk %}"
+                                   class="btn btn-sm btn-outline-danger"
+                                   style="border-radius:8px;">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- PHÂN TRANG -->
+    {% if page_obj.has_other_pages %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">&laquo; Trước</a>
+            </li>
+            {% endif %}
+            {% for num in page_obj.paginator.page_range %}
+            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+            </li>
+            {% endfor %}
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Sau &raquo;</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
+    {% else %}
+    {% include 'partials/empty_state.html' with icon='bi-scissors' title='Chưa có mã khuyến mãi' description='Tạo mã đầu tiên để bắt đầu thu hút khách hàng.' cta_url='' cta_text='' %}
+    {% endif %}
+
+</div>
+{% endblock %}

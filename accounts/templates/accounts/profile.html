@@ -3,40 +3,52 @@
 {% block title %}Trang cá nhân — CourtBooking{% endblock %}
 
 {% block content %}
-<div class="container">
-<div class="row justify-content-center mt-5">
-    <div class="col-md-6">
-        <div class="card shadow-sm">
-            <div class="card-body p-4">
-                <h4 class="card-title mb-4">Thông tin tài khoản</h4>
+<div style="background-color: #f9fafb; min-height: calc(100vh - 76px); padding-top: 3rem; padding-bottom: 5rem;">
+    <div class="container" style="max-width: 448px; margin: 0 auto; padding-left: 1rem; padding-right: 1rem;">
 
-                <table class="table table-borderless">
-                    <tr>
-                        <th style="width: 40%">Tên đăng nhập</th>
-                        <td>{{ user.username }}</td>
-                    </tr>
-                    <tr>
-                        <th>Email</th>
-                        <td>{{ user.email|default:'—' }}</td>
-                    </tr>
-                    <tr>
-                        <th>Số điện thoại</th>
-                        <td>{{ user.phone|default:'—' }}</td>
-                    </tr>
-                    <tr>
-                        <th>Vai trò</th>
-                        <td>{{ user.get_role_display }}</td>
-                    </tr>
-                    <tr>
-                        <th>Ngày tham gia</th>
-                        <td>{{ user.date_joined|date:"d/m/Y" }}</td>
-                    </tr>
-                </table>
+        <div class="bg-white shadow-sm" style="border-radius: 1rem; border: 1px solid #f3f4f6; overflow: hidden;">
 
-                <a href="{% url 'accounts:logout' %}" class="btn btn-outline-danger mt-2">Đăng xuất</a>
+            <!-- PROFILE HEADER -->
+            <div class="d-flex flex-column align-items-center" style="padding-top: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid #f3f4f6;">
+                <!-- AVATAR -->
+                <div class="mb-3 d-flex align-items-center justify-content-center fw-bold"
+                     style="width: 6rem; height: 6rem; border-radius: 50%; background-color: #d1fae5; color: #059669; font-size: 2.25rem;">
+                    {{ user.username|make_list|first|upper }}
+                </div>
+                <h2 class="fw-bold mb-0" style="font-size: 1.5rem; color: #111827;">{{ user.username }}</h2>
+                <div class="mt-2 fw-medium" style="font-size: 0.875rem; color: #6b7280; background-color: #f3f4f6; padding: 0.25rem 0.75rem; border-radius: 9999px;">
+                    {{ user.get_role_display }}
+                </div>
             </div>
+
+            <!-- THÔNG TIN -->
+            <div style="padding: 1.5rem;">
+                <div class="d-flex justify-content-between align-items-center" style="padding-top: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #f9fafb;">
+                    <span class="fw-medium" style="font-size: 0.875rem; color: #6b7280;">Email</span>
+                    <span class="fw-semibold" style="font-size: 0.875rem; color: #111827;">{{ user.email|default:'—' }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center" style="padding-top: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #f9fafb;">
+                    <span class="fw-medium" style="font-size: 0.875rem; color: #6b7280;">Số điện thoại</span>
+                    <span class="fw-semibold" style="font-size: 0.875rem; color: #111827;">{{ user.phone|default:'—' }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center" style="padding-top: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #f9fafb;">
+                    <span class="fw-medium" style="font-size: 0.875rem; color: #6b7280;">Ngày tham gia</span>
+                    <span class="fw-semibold" style="font-size: 0.875rem; color: #111827;">{{ user.date_joined|date:"d/m/Y" }}</span>
+                </div>
+            </div>
+
+            <!-- NÚT ĐĂNG XUẤT -->
+            <div style="padding: 0.5rem 1.5rem 1.5rem 1.5rem;">
+                <a href="{% url 'accounts:logout' %}"
+                   class="btn w-100 d-flex justify-content-center align-items-center gap-2 fw-semibold"
+                   style="background-color: #fef2f2; color: #dc2626; border-radius: 0.75rem; padding-top: 0.75rem; padding-bottom: 0.75rem; transition: background-color 0.2s;"
+                   onmouseover="this.style.backgroundColor='#fee2e2'"
+                   onmouseout="this.style.backgroundColor='#fef2f2'">
+                    <i class="bi bi-box-arrow-right"></i> Đăng xuất
+                </a>
+            </div>
+
         </div>
     </div>
-</div>
 </div>
 {% endblock %}

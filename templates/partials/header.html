@@ -57,11 +57,16 @@
                     </li>
                     {% endif %}
 
-                    <!-- === ADMIN: Duyệt sân + Dashboard === -->
+                    <!-- === ADMIN: Duyệt sân + Khuyến mãi + Dashboard === -->
                     {% if request.session.role == 'admin' %}
                     <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.view_name == 'courts:court_pending_list' %}active-link{% endif %}" href="{% url 'courts:court_pending_list' %}">
                             <i class="bi bi-clipboard-check me-1"></i>Duyệt sân mới
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.view_name == 'promotions:promotion_list' %}active-link{% endif %}" href="{% url 'promotions:promotion_list' %}">
+                            <i class="bi bi-scissors me-1"></i>Mã khuyến mãi
                         </a>
                     </li>
                     <li class="nav-item">

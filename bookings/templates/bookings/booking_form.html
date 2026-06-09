@@ -4,51 +4,188 @@
 {% block title %}Đặt sân {{ court.name }} — CourtBooking{% endblock %}
 
 {% block content %}
-<div class="container my-4">
+<style>
+.back-link-bloom {
+    position: relative;
+    z-index: 1;
+    padding: 0.5rem 1rem;
+    margin-left: -1rem;
+    transition: color 0.3s ease;
+}
+.back-link-bloom::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #ecfdf5;
+    border-radius: 1rem;
+    z-index: -1;
+    transform: scale(0.5);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.back-link-bloom:hover { color: #047857 !important; }
+.back-link-bloom:hover::before { transform: scale(1); opacity: 1; }
+
+#slot-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    user-select: none;
+}
+.time-slot {
+    padding: 12px 6px;
+    text-align: center;
+    border-radius: 12px;
+    font-weight: 500;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    background-color: #ffffff;
+    color: #374151;
+    border: 1px solid #e5e7eb;
+}
+.time-slot:hover:not(.booked):not(.past):not(.selected) {
+    border-color: #10b981;
+    color: #059669;
+    background-color: #f9fafb;
+}
+.time-slot.booked, .time-slot.past {
+    background-color: #f9fafb;
+    color: #9ca3af;
+    border-color: transparent;
+    cursor: not-allowed;
+    text-decoration: line-through;
+}
+.time-slot.selected {
+    background-color: #059669;
+    color: #ffffff;
+    font-weight: bold;
+    border-color: #059669;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.date-cell {
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+    color: #374151;
+    transition: all 0.2s ease;
+}
+.date-cell:not(.disabled):not(.selected):not(.empty):hover {
+    background-color: #ecfdf5;
+    color: #047857;
+}
+.date-cell.selected {
+    background-color: #059669;
+    color: #ffffff;
+    font-weight: bold;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+}
+.date-cell.today:not(.selected) { color: #059669; font-weight: bold; }
+.date-cell.disabled { color: #d1d5db; cursor: not-allowed; }
+.date-cell.empty { cursor: default; }
+
+.submit-btn-lift { transition: all 0.3s ease; }
+.submit-btn-lift:not(:disabled):hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+</style>
+
+<div class="container" style="max-width: 56rem; margin: 0 auto; padding-top: 2rem; padding-bottom: 4rem;">
 
     <!-- NÚT QUAY LẠI -->
     <a href="{% url 'courts:court_detail' court.pk %}"
-       class="btn btn-outline-secondary btn-sm mb-4">
-        ← Quay lại chi tiết sân
+       class="back-link-bloom d-inline-flex align-items-center text-decoration-none text-muted mb-4" style="font-size: 0.875rem; font-weight: 500;">
+        <i class="bi bi-arrow-left me-2"></i>Quay lại chi tiết sân
     </a>
 
     <!-- THÔNG TIN SÂN -->
-    <div class="card border-0 mb-4" style="background:#f1f8e9;">
-        <div class="card-body py-3">
-            <h5 class="fw-bold mb-1">{{ court.name }}</h5>
-            <span class="text-muted small">
-                <i class="bi bi-geo-alt-fill me-1"></i>{{ court.address }}
-            </span>
-            <p class="fw-semibold mt-2 mb-0" style="color:#1b5e20;">
-                {{ court.price_per_hour|intcomma }}đ / giờ
+    <div class="bg-white p-4 p-md-5 mb-4 d-flex flex-column flex-md-row gap-4 align-items-md-center" style="border-radius: 1rem; box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); border: 1px solid #f3f4f6;">
+        {% if court.image %}
+            <img src="{{ court.image.url }}" alt="{{ court.name }}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 0.75rem; flex-shrink: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        {% else %}
+            <div style="width: 120px; height: 120px; border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; background-color: #f3f4f6; font-size: 3rem; flex-shrink: 0;">
+                {% if court.court_type == 'badminton' %}🏸
+                {% elif court.court_type == 'football' %}⚽
+                {% elif court.court_type == 'pickleball' %}🏓
+                {% elif court.court_type == 'basketball' %}🏀
+                {% elif court.court_type == 'tennis' %}🎾
+                {% else %}🏟️{% endif %}
+            </div>
+        {% endif %}
+        <div>
+            <h2 class="fw-bold mb-3" style="font-size: 1.5rem; color: #111827;">{{ court.name }}</h2>
+            <div class="text-muted d-flex align-items-center mb-1" style="font-size: 0.95rem;">
+                <i class="bi bi-geo-alt-fill text-success me-2" style="font-size: 1.15rem; transform: translateY(-1px);"></i>
+                <span>{{ court.address }}</span>
+            </div>
+            <p class="fw-bold mt-2 mb-0" style="color: #059669; font-size: 1.25rem;">
+                {{ court.price_per_hour|intcomma }}đ <span class="text-muted fw-normal" style="font-size: 1rem;">/ giờ</span>
             </p>
         </div>
     </div>
 
-    <!-- LỖI SERVER-SIDE (trùng lịch hoặc ngày quá khứ lọt qua JS) -->
+    <!-- LỖI SERVER-SIDE -->
     {% if form.non_field_errors %}
-        <div class="alert alert-danger mb-3">
+        <div class="alert alert-danger mb-4" style="border-radius: 0.75rem;">
             {% for error in form.non_field_errors %}
-                <div>{{ error }}</div>
+                <div class="fw-medium"><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error }}</div>
             {% endfor %}
         </div>
     {% endif %}
 
     <!-- FORM CHỌN NGÀY (GET) -->
-    <form method="GET" action="" class="mb-3 d-flex align-items-center gap-2">
-        <label class="form-label fw-semibold mb-0">Ngày chơi:</label>
-        <input type="date" name="date" class="form-control" style="width:180px;"
-               value="{{ selected_date_str }}"
-               min="{{ today_str }}">
-        <button type="submit" class="btn btn-outline-success">Xem lịch</button>
-    </form>
+    <div class="bg-white p-4 mb-4" style="border-radius: 1rem; border: 1px solid #f3f4f6;">
+        <form method="GET" action="" class="d-flex flex-column flex-md-row align-items-md-center gap-3">
+            <label class="form-label fw-bold mb-0 text-dark" style="font-size: 1.05rem;">Chọn ngày chơi:</label>
+            <div class="d-flex gap-2 align-items-center">
+                <div class="position-relative" id="customDatepickerWrapper">
+                    <input type="hidden" name="date" id="hiddenDateInput" value="{{ selected_date_str }}">
+                    <button type="button" id="datePickerTrigger" class="btn px-3 d-flex justify-content-between align-items-center" style="width: 200px; border-radius: 0.75rem; text-align: left; background-color: #fff; border: 1px solid #d1d5db; box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); height: 2.5rem;">
+                        <span id="datePickerDisplayText" class="fw-medium text-dark"><i class="bi bi-calendar3 me-2 text-muted"></i>{{ selected_date|date:"d/m/Y" }}</span>
+                        <i class="bi bi-chevron-down text-muted" style="font-size: 0.8rem;"></i>
+                    </button>
+                    <div id="datePickerPopover" class="d-none" style="position: absolute; top: 100%; left: 0; z-index: 50; margin-top: 0.5rem; background-color: white; border-radius: 1rem; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); border: 1px solid #f3f4f6; padding: 1.25rem; width: 320px;">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <button type="button" id="prevMonthBtn" class="btn btn-sm" style="border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; padding: 0;" onmouseover="this.style.backgroundColor='#f3f4f6'" onmouseout="this.style.backgroundColor='transparent'">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                            </button>
+                            <div id="currentMonthYear" class="fw-bold" style="color: #111827; font-size: 1.05rem;"></div>
+                            <button type="button" id="nextMonthBtn" class="btn btn-sm" style="border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; padding: 0;" onmouseover="this.style.backgroundColor='#f3f4f6'" onmouseout="this.style.backgroundColor='transparent'">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                            </button>
+                        </div>
+                        <div class="d-grid text-center mb-2" style="grid-template-columns: repeat(7, 1fr);">
+                            <div style="font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase;">CN</div>
+                            <div style="font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase;">T2</div>
+                            <div style="font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase;">T3</div>
+                            <div style="font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase;">T4</div>
+                            <div style="font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase;">T5</div>
+                            <div style="font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase;">T6</div>
+                            <div style="font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase;">T7</div>
+                        </div>
+                        <div id="calendarDays" class="d-grid text-center" style="grid-template-columns: repeat(7, 1fr); row-gap: 0.5rem; justify-items: center;"></div>
+                    </div>
+                </div>
+                <button type="submit" class="btn fw-medium px-4" style="background-color: #ecfdf5; color: #047857; border-radius: 0.75rem; height: 2.5rem;">Xem lịch</button>
+            </div>
+        </form>
+    </div>
 
-    <p class="text-muted small mb-2">
-        Lịch ngày <strong>{{ selected_date|date:"d/m/Y" }}</strong> —
-        Click ô bắt đầu rồi click ô kết thúc (hoặc kéo chuột). Tối thiểu 1 giờ, tối đa 4 giờ.
-    </p>
+    <div class="mb-4">
+        <h5 class="fw-bold mb-2">Lịch trống ngày {{ selected_date|date:"d/m/Y" }}</h5>
+        <p class="text-muted mb-0" style="font-size: 0.9rem;">
+            Click ô bắt đầu rồi click ô kết thúc (hoặc kéo thả chuột). Tối thiểu 1 giờ, tối đa 4 giờ.
+        </p>
+    </div>
 
-    <!-- LƯỚI TIME SLOT -->
+    <!-- LƯỚI TIME SLOT (32 slots, 06:00–21:30) -->
     <div id="slot-grid">
         {% for slot in slots_info %}
             <div class="time-slot {% if slot.is_booked %}booked{% elif slot.is_past %}past{% endif %}"
@@ -60,65 +197,56 @@
         {% endfor %}
     </div>
 
-    <!-- Ô TỔNG KẾT (ẩn mặc định, JS bật lên khi chọn hợp lệ) -->
-    <div id="summary" style="display:none;" class="mt-3">
-        <div class="card border-0 p-3" style="background:#e8f5e9; border-radius:8px;">
-            <p id="summary-text" class="mb-0 fw-semibold" style="color:#1b5e20;"></p>
+    <!-- TÓM TẮT KHI CHỌN HỢP LỆ -->
+    <div id="summary" style="display:none;" class="mt-4">
+        <div class="p-3" style="background-color: #ecfdf5; border-radius: 1rem; border: 1px solid #d1fae5;">
+            <p id="summary-text" class="mb-0 fw-bold" style="color: #047857;"></p>
         </div>
     </div>
 
-    <!-- MÃ GIẢM GIÁ -->
-    <div class="mt-3">
-        <div class="card border-0 p-3" style="background:#fff8e1; border-radius:8px;">
-            <h6 class="fw-semibold mb-2">
-                <i class="bi bi-tag-fill me-1" style="color:#f57f17;"></i>Mã giảm giá
-            </h6>
-
-            <!-- Ô NHẬP MÃ + NÚT ÁP DỤNG -->
-            <div class="d-flex gap-2 mb-2">
-                <input type="text" id="promoInput" class="form-control form-control-sm"
-                       placeholder="VD: GIAM10, GIAM50K"
-                       style="max-width:220px; text-transform:uppercase;"
-                       autocomplete="off">
-                <button type="button" class="btn btn-warning btn-sm fw-semibold"
-                        onclick="applyPromo()">Áp dụng</button>
+    <!-- CHECKOUT CARD: MÃ GIẢM GIÁ + BẢNG GIÁ -->
+    <div class="bg-white p-4 p-md-5 mt-5" style="border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid #f3f4f6;">
+        <h5 class="fw-bold mb-4" style="color: #111827;">Mã giảm giá</h5>
+        <div class="d-flex gap-2 mb-3">
+            <input type="text" id="promoInput" class="form-control px-3"
+                   placeholder="Nhập mã (VD: GIAM10)"
+                   style="max-width: 250px; text-transform: uppercase; border-radius: 0.75rem;"
+                   autocomplete="off">
+            <button type="button" class="btn fw-semibold px-4"
+                    style="background-color: #1f2937; color: white; border-radius: 0.75rem;"
+                    onmouseover="this.style.backgroundColor='#374151'" onmouseout="this.style.backgroundColor='#1f2937'"
+                    onclick="applyPromo()">Áp dụng</button>
+        </div>
+        <div id="promoAlert" class="py-2 px-3 small fw-medium mb-3" style="display:none; border-radius: 0.5rem;"></div>
+        <div id="priceSummary" class="mt-4 pt-4" style="display:none; border-top: 1px dashed #e5e7eb;">
+            <div id="priceBaseRow" class="d-flex justify-content-between mb-2 text-muted" style="display:none; font-size: 1.05rem;">
+                <span>Tạm tính:</span>
+                <span id="priceBase" class="fw-medium"></span>
             </div>
-
-            <!-- THÔNG BÁO KẾT QUẢ ÁP MÃ -->
-            <div id="promoAlert" class="py-2 small" style="display:none;"></div>
-
-            <!-- BẢNG TÓM TẮT GIÁ (ẩn khi chưa chọn time-slot) -->
-            <div id="priceSummary" class="mt-2 border-top pt-2" style="display:none;">
-                <div id="priceBaseRow" class="d-flex justify-content-between small text-muted mb-1" style="display:none;">
-                    <span>Tạm tính:</span>
-                    <span id="priceBase"></span>
-                </div>
-                <div id="promoDiscountRow" class="d-flex justify-content-between small mb-1"
-                     style="display:none;">
-                    <span class="text-success">Giảm giá:</span>
-                    <span class="text-success" id="priceDiscountAmt"></span>
-                </div>
-                <div class="d-flex justify-content-between fw-bold mt-1"
-                     style="color:#1b5e20; font-size:1.05rem;">
-                    <span>Thành tiền:</span>
-                    <span id="priceFinal"></span>
-                </div>
+            <div id="promoDiscountRow" class="d-flex justify-content-between mb-2"
+                 style="display:none; font-size: 1.05rem; color: #059669;">
+                <span>Giảm giá:</span>
+                <span id="priceDiscountAmt" class="fw-bold"></span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-3 pt-3"
+                 style="border-top: 1px solid #f3f4f6;">
+                <span class="text-muted fw-bold" style="font-size: 1.15rem;">Tổng thanh toán:</span>
+                <span id="priceFinal" class="fw-bold" style="color: #059669; font-size: 1.75rem; line-height: 1;"></span>
             </div>
         </div>
     </div>
 
-    <!-- FORM ĐẶT SÂN (POST) — các field ẩn, JS điền giá trị -->
-    <form method="POST" action="{% url 'bookings:booking_create' court.pk %}" class="mt-3">
+    <!-- FORM POST ĐẶT SÂN -->
+    <form method="POST" action="{% url 'bookings:booking_create' court.pk %}" class="mt-5">
         {% csrf_token %}
-        {# date được pre-fill bằng selected_date_str, JS không cần đổi #}
-        <input type="hidden" name="date" id="id_date" value="{{ selected_date_str }}">
-        <input type="hidden" name="start_time" id="id_start_time" value="">
+        <input type="hidden" name="date"           id="id_date"          value="{{ selected_date_str }}">
+        <input type="hidden" name="start_time"     id="id_start_time"    value="">
         <input type="hidden" name="duration_hours" id="id_duration_hours" value="">
-        <input type="hidden" name="promotion" id="appliedPromotion" value="">
+        <input type="hidden" name="promotion"      id="appliedPromotion" value="">
         <div class="d-grid">
             <button type="submit" id="submit-btn"
-                    class="btn btn-lg fw-semibold text-white"
-                    style="background-color:#1b5e20;"
+                    class="btn submit-btn-lift text-white fw-bold"
+                    style="background-color: #059669; border-radius: 9999px; padding: 1.25rem 2rem; font-size: 1.15rem;"
                     disabled>
                 Xác nhận đặt sân
             </button>
@@ -127,49 +255,8 @@
 
 </div>
 
-<!-- ===== STYLE ===== -->
-<style>
-#slot-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
-    user-select: none;
-}
-.time-slot {
-    padding: 12px 6px;
-    text-align: center;
-    border-radius: 6px;
-    font-weight: 500;
-    font-size: .9rem;
-    transition: background .15s, color .15s;
-    cursor: pointer;
-    background: #f5f5f5;
-    color: #333;
-}
-.time-slot:hover:not(.booked):not(.selected) {
-    background: #e0e0e0;
-}
-.time-slot.booked {
-    background: #ffebee;
-    color: #bbb;
-    cursor: not-allowed;
-    text-decoration: line-through;
-}
-.time-slot.past {
-    background: #f5f5f5;
-    color: #bbb;
-    cursor: not-allowed;
-    text-decoration: line-through;
-}
-.time-slot.selected {
-    background: #1b5e20;
-    color: #fff;
-}
-</style>
-
-<!-- ===== JAVASCRIPT ===== -->
+<!-- ===== JAVASCRIPT SLOT SELECTION ===== -->
 <script>
-// GIÁ THUÊ MỖI GIỜ (truyền từ Django)
 const PRICE_PER_HOUR = parseInt("{{ court.price_per_hour|floatformat:0 }}");
 
 const allSlots   = document.querySelectorAll('.time-slot');
@@ -179,20 +266,12 @@ const submitBtn  = document.getElementById('submit-btn');
 const inputStart = document.getElementById('id_start_time');
 const inputDur   = document.getElementById('id_duration_hours');
 
-let clickStart = null;   // slot index của click đầu tiên (chế độ 2-click)
-let dragStart  = null;   // slot index khi bắt đầu kéo
-let hasMoved   = false;  // phân biệt click vs kéo
+let clickStart = null;
+let dragStart  = null;
+let hasMoved   = false;
 
-// ---------- HELPER ----------
-
-function slotEl(idx) {
-    return document.querySelector(`.time-slot[data-index="${idx}"]`);
-}
-
-function clearSelection() {
-    allSlots.forEach(s => s.classList.remove('selected'));
-}
-
+function slotEl(idx) { return document.querySelector(`.time-slot[data-index="${idx}"]`); }
+function clearSelection() { allSlots.forEach(s => s.classList.remove('selected')); }
 function hideSummary() {
     summaryDiv.style.display = 'none';
     submitBtn.disabled = true;
@@ -200,145 +279,86 @@ function hideSummary() {
     inputDur.value   = '';
     resetPromoUI();
 }
-
 function previewRange(a, b) {
     clearSelection();
     const lo = Math.min(a, b), hi = Math.max(a, b);
-    for (let i = lo; i <= hi; i++) {
-        slotEl(i)?.classList.add('selected');
-    }
+    for (let i = lo; i <= hi; i++) slotEl(i)?.classList.add('selected');
 }
-
-function isDisabled(el) {
-    return el?.classList.contains('booked') || el?.classList.contains('past');
-}
-
+function isDisabled(el) { return el?.classList.contains('booked') || el?.classList.contains('past'); }
 function hasBookedInRange(lo, hi) {
-    for (let i = lo; i <= hi; i++) {
-        if (isDisabled(slotEl(i))) return true;
-    }
+    for (let i = lo; i <= hi; i++) if (isDisabled(slotEl(i))) return true;
     return false;
 }
-
 function applySelection(a, b) {
-    const lo    = Math.min(a, b);
-    const hi    = Math.max(a, b);
-    const count = hi - lo + 1;
-
-    // KIỂM TRA ĐA DẠNG ĐIỀU KIỆN
+    const lo = Math.min(a, b), hi = Math.max(a, b), count = hi - lo + 1;
     if (hasBookedInRange(lo, hi)) {
         alert('Khoảng giờ này có ô đã được đặt. Vui lòng chọn khoảng khác.');
-        clearSelection();
-        hideSummary();
-        return false;
+        clearSelection(); hideSummary(); return false;
     }
     if (count % 2 !== 0) {
         alert('Vui lòng chọn theo đơn vị 1 giờ (2 ô liền nhau).');
-        clearSelection();
-        hideSummary();
-        return false;
+        clearSelection(); hideSummary(); return false;
     }
     if (count < 2) {
         alert('Vui lòng chọn ít nhất 1 giờ (2 ô).');
-        clearSelection();
-        hideSummary();
-        return false;
+        clearSelection(); hideSummary(); return false;
     }
     if (count > 8) {
         alert('Tối đa 4 giờ (8 ô). Vui lòng chọn lại.');
-        clearSelection();
-        hideSummary();
-        return false;
+        clearSelection(); hideSummary(); return false;
     }
-
-    // LỰA CHỌN HỢP LỆ — tô màu và điền form
     previewRange(lo, hi);
-
-    const startTime    = slotEl(lo).dataset.time;
-    const durationHrs  = count / 2;
-
-    // TÍNH GIỜ KẾT THÚC
-    const [sh, sm]     = startTime.split(':').map(Number);
-    const endMins      = sh * 60 + sm + count * 30;
-    const endH         = Math.floor(endMins / 60);
-    const endM         = endMins % 60;
-    const endTime      = `${String(endH).padStart(2,'0')}:${String(endM).padStart(2,'0')}`;
-
-    // ĐIỀN VÀO HIDDEN INPUT
-    inputStart.value = startTime;
-    inputDur.value   = durationHrs;
-
-    // HIỂN THỊ TỔNG KẾT
-    const total = PRICE_PER_HOUR * durationHrs;
+    const startTime   = slotEl(lo).dataset.time;
+    const durationHrs = count / 2;
+    const [sh, sm]    = startTime.split(':').map(Number);
+    const endMins     = sh * 60 + sm + count * 30;
+    const endH        = Math.floor(endMins / 60);
+    const endM        = endMins % 60;
+    const endTime     = `${String(endH).padStart(2,'0')}:${String(endM).padStart(2,'0')}`;
+    inputStart.value  = startTime;
+    inputDur.value    = durationHrs;
+    const total       = PRICE_PER_HOUR * durationHrs;
     currentOrderTotal = total;
-    summaryTxt.textContent =
-        `Đã chọn: ${startTime} – ${endTime} (${durationHrs} giờ) — Tổng tiền: ${total.toLocaleString('vi-VN')}đ`;
+    summaryTxt.textContent = `Đã chọn: ${startTime} – ${endTime} (${durationHrs} giờ) — Tổng tiền: ${total.toLocaleString('vi-VN')}đ`;
     summaryDiv.style.display = 'block';
     submitBtn.disabled = false;
-    resetPromoUI();
-    updatePriceSummary();
-
+    resetPromoUI(); updatePriceSummary();
     return true;
 }
-
-// ---------- CLICK (2-click selection) ----------
 
 allSlots.forEach(slot => {
     slot.addEventListener('click', () => {
         if (slot.classList.contains('booked') || slot.classList.contains('past')) return;
-        if (hasMoved) { hasMoved = false; return; } // drag đã xử lý
-
+        if (hasMoved) { hasMoved = false; return; }
         const idx = parseInt(slot.dataset.index);
-
         if (clickStart === null) {
-            // CLICK LẦN 1: chọn ô đầu
-            clickStart = idx;
-            clearSelection();
-            slot.classList.add('selected');
-            hideSummary();
+            clickStart = idx; clearSelection(); slot.classList.add('selected'); hideSummary();
         } else if (clickStart === idx) {
-            // CLICK LẠI Ô CŨ: huỷ chọn
-            clickStart = null;
-            clearSelection();
-            hideSummary();
+            clickStart = null; clearSelection(); hideSummary();
         } else {
-            // CLICK LẦN 2: xác nhận khoảng
-            const ok = applySelection(clickStart, idx);
-            clickStart = null;
+            applySelection(clickStart, idx); clickStart = null;
         }
     });
-});
-
-// ---------- DRAG (mousedown + mouseenter + mouseup) ----------
-
-allSlots.forEach(slot => {
     slot.addEventListener('mousedown', e => {
         if (slot.classList.contains('booked') || slot.classList.contains('past')) return;
-        e.preventDefault();
-        dragStart = parseInt(slot.dataset.index);
-        hasMoved  = false;
+        e.preventDefault(); dragStart = parseInt(slot.dataset.index); hasMoved = false;
     });
-
     slot.addEventListener('mouseenter', () => {
         if (dragStart === null) return;
-        hasMoved = true;
-        previewRange(dragStart, parseInt(slot.dataset.index));
+        hasMoved = true; previewRange(dragStart, parseInt(slot.dataset.index));
     });
 });
 
 document.addEventListener('mouseup', () => {
     if (dragStart === null) return;
-
     if (hasMoved) {
-        // LẤY KHOẢNG TỪ CÁC Ô ĐANG ĐƯỢC HIGHLIGHT
         const selected = Array.from(document.querySelectorAll('.time-slot.selected'));
         if (selected.length > 0) {
             const indices = selected.map(s => parseInt(s.dataset.index));
             applySelection(Math.min(...indices), Math.max(...indices));
         }
-        clickStart = null; // reset chế độ 2-click nếu đang dở
+        clickStart = null;
     }
-
     dragStart = null;
 });
 </script>
@@ -348,30 +368,23 @@ document.addEventListener('mouseup', () => {
 let currentOrderTotal    = 0;
 let appliedPromoDiscount = 0;
 
-const promoInput        = document.getElementById('promoInput');
-const promoAlertEl      = document.getElementById('promoAlert');
-const priceSummaryDiv   = document.getElementById('priceSummary');
-const priceBaseEl       = document.getElementById('priceBase');
-const promoDiscountRow  = document.getElementById('promoDiscountRow');
-const priceBaseRow      = document.getElementById('priceBaseRow');
-const priceDiscountEl   = document.getElementById('priceDiscountAmt');
-const priceFinalEl      = document.getElementById('priceFinal');
-const appliedCodeInput  = document.getElementById('appliedPromotion');
+const promoInput       = document.getElementById('promoInput');
+const promoAlertEl     = document.getElementById('promoAlert');
+const priceSummaryDiv  = document.getElementById('priceSummary');
+const priceBaseEl      = document.getElementById('priceBase');
+const promoDiscountRow = document.getElementById('promoDiscountRow');
+const priceBaseRow     = document.getElementById('priceBaseRow');
+const priceDiscountEl  = document.getElementById('priceDiscountAmt');
+const priceFinalEl     = document.getElementById('priceFinal');
+const appliedCodeInput = document.getElementById('appliedPromotion');
 
-function fmtVND(n) {
-    return n.toLocaleString('vi-VN') + 'đ';
-}
+function fmtVND(n) { return n.toLocaleString('vi-VN') + 'đ'; }
 
 function updatePriceSummary() {
-    if (currentOrderTotal === 0) {
-        priceSummaryDiv.style.display = 'none';
-        return;
-    }
+    if (currentOrderTotal === 0) { priceSummaryDiv.style.display = 'none'; return; }
     priceSummaryDiv.style.display = '';
     priceBaseEl.textContent  = fmtVND(currentOrderTotal);
     priceFinalEl.textContent = fmtVND(currentOrderTotal - appliedPromoDiscount);
-
-    // CHỈ HIỆN "TẠM TÍNH" VÀ "GIẢM GIÁ" KHI ĐÃ ÁP MÃ THÀNH CÔNG
     if (appliedPromoDiscount > 0) {
         priceBaseRow.style.display     = '';
         promoDiscountRow.style.display = 'flex';
@@ -382,11 +395,10 @@ function updatePriceSummary() {
     }
 }
 
-// RESET TRẠNG THÁI MÃ (gọi khi chọn lại slot hoặc huỷ chọn)
 function resetPromoUI() {
-    appliedPromoDiscount           = 0;
-    appliedCodeInput.value         = '';
-    promoAlertEl.style.display     = 'none';
+    appliedPromoDiscount       = 0;
+    appliedCodeInput.value     = '';
+    promoAlertEl.style.display = 'none';
     promoDiscountRow.style.display = 'none';
     updatePriceSummary();
 }
@@ -397,16 +409,10 @@ function showPromoAlert(msg, success) {
     promoAlertEl.style.display = '';
 }
 
-// ÁP MÃ GIẢM GIÁ QUA FETCH POST
 async function applyPromo() {
     const code = promoInput.value.trim().toUpperCase();
     if (!code) return;
-
-    if (currentOrderTotal === 0) {
-        showPromoAlert('Vui lòng chọn giờ chơi trước khi áp mã.', false);
-        return;
-    }
-
+    if (currentOrderTotal === 0) { showPromoAlert('Vui lòng chọn giờ chơi trước khi áp mã.', false); return; }
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
     try {
         const resp = await fetch("{% url 'promotions:validate_promo' %}", {
@@ -415,17 +421,13 @@ async function applyPromo() {
             body: `csrfmiddlewaretoken=${encodeURIComponent(csrfToken)}&code=${encodeURIComponent(code)}&order_total=${currentOrderTotal}`,
         });
         const data = await resp.json();
-
         if (data.valid) {
-            appliedPromoDiscount           = data.discount_amount;
-            appliedCodeInput.value         = code;
-            promoDiscountRow.style.display = 'flex';
-            priceDiscountEl.textContent    = '-' + fmtVND(data.discount_amount);
+            appliedPromoDiscount = data.discount_amount;
+            appliedCodeInput.value = code;
             showPromoAlert(data.message, true);
         } else {
-            appliedPromoDiscount           = 0;
-            appliedCodeInput.value         = '';
-            promoDiscountRow.style.display = 'none';
+            appliedPromoDiscount = 0;
+            appliedCodeInput.value = '';
             showPromoAlert(data.message, false);
         }
         updatePriceSummary();
@@ -434,10 +436,77 @@ async function applyPromo() {
     }
 }
 
-// NHẤN ENTER TRONG Ô MÃ → ÁP DỤNG (không submit form chính)
-promoInput.addEventListener('keydown', e => {
-    if (e.key === 'Enter') { e.preventDefault(); applyPromo(); }
-});
+promoInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); applyPromo(); } });
+</script>
+
+<!-- ===== CUSTOM DATEPICKER JS ===== -->
+<script>
+(function() {
+    const minDateStr = "{{ today_str }}";
+    const todayObj   = new Date();
+    const todayStr   = `${todayObj.getFullYear()}-${String(todayObj.getMonth()+1).padStart(2,'0')}-${String(todayObj.getDate()).padStart(2,'0')}`;
+
+    const hiddenInput = document.getElementById('hiddenDateInput');
+    let currentDate   = new Date(hiddenInput.value + 'T00:00:00');
+    if (isNaN(currentDate)) currentDate = new Date();
+
+    let currentViewMonth = currentDate.getMonth();
+    let currentViewYear  = currentDate.getFullYear();
+
+    const popover    = document.getElementById('datePickerPopover');
+    const trigger    = document.getElementById('datePickerTrigger');
+    const displayTxt = document.getElementById('datePickerDisplayText');
+
+    trigger.addEventListener('click', e => { e.preventDefault(); popover.classList.toggle('d-none'); renderCalendar(); });
+
+    document.addEventListener('click', e => {
+        if (!trigger.contains(e.target) && !popover.contains(e.target)) popover.classList.add('d-none');
+    });
+
+    document.getElementById('prevMonthBtn').addEventListener('click', () => {
+        currentViewMonth--;
+        if (currentViewMonth < 0) { currentViewMonth = 11; currentViewYear--; }
+        renderCalendar();
+    });
+    document.getElementById('nextMonthBtn').addEventListener('click', () => {
+        currentViewMonth++;
+        if (currentViewMonth > 11) { currentViewMonth = 0; currentViewYear++; }
+        renderCalendar();
+    });
+
+    function renderCalendar() {
+        document.getElementById('currentMonthYear').textContent = `Tháng ${currentViewMonth + 1} ${currentViewYear}`;
+        const daysContainer = document.getElementById('calendarDays');
+        daysContainer.innerHTML = '';
+        const firstDay    = new Date(currentViewYear, currentViewMonth, 1).getDay();
+        const daysInMonth = new Date(currentViewYear, currentViewMonth + 1, 0).getDate();
+        const selectedStr = hiddenInput.value;
+
+        for (let i = 0; i < firstDay; i++) {
+            const div = document.createElement('div');
+            div.className = 'date-cell empty';
+            daysContainer.appendChild(div);
+        }
+        for (let day = 1; day <= daysInMonth; day++) {
+            const dateStr = `${currentViewYear}-${String(currentViewMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+            const div = document.createElement('div');
+            div.className = 'date-cell';
+            div.textContent = day;
+            if (dateStr === selectedStr) div.classList.add('selected');
+            else if (dateStr === todayStr) div.classList.add('today');
+            if (dateStr < minDateStr) {
+                div.classList.add('disabled');
+            } else {
+                div.addEventListener('click', () => {
+                    hiddenInput.value = dateStr;
+                    displayTxt.innerHTML = `<i class="bi bi-calendar3 me-2 text-muted"></i>${String(day).padStart(2,'0')}/${String(currentViewMonth+1).padStart(2,'0')}/${currentViewYear}`;
+                    popover.classList.add('d-none');
+                });
+            }
+            daysContainer.appendChild(div);
+        }
+    }
+})();
 </script>
 
 {% endblock %}

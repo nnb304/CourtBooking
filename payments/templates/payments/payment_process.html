@@ -1,90 +1,192 @@
 {% extends 'base.html' %}
 {% load humanize %}
 
-{% block title %}Thanh toán đơn đặt sân — CourtBooking{% endblock %}
+{% block title %}Thanh toán — CourtBooking{% endblock %}
 
 {% block content %}
-<div class="container my-5" style="max-width: 640px;">
+<div class="container my-5" style="max-width: 720px;">
 
-    <h2 class="fw-bold mb-4">
-        <i class="bi bi-credit-card me-2 text-success"></i>Thanh toán
-    </h2>
+    <!-- TIÊU ĐỀ TRANG -->
+    <div class="mb-4">
+        <h2 class="fw-bold mb-1" style="font-family:'Montserrat',sans-serif; color:#111827;">
+            <i class="bi bi-credit-card-2-front me-2" style="color:var(--primary);"></i>
+            Thanh toán đặt sân
+        </h2>
+        <p class="text-muted mb-0" style="font-size:.93rem;">
+            Kiểm tra thông tin và chọn phương thức thanh toán
+        </p>
+    </div>
 
-    <!-- TÓM TẮT ĐƠN ĐẶT SÂN -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header fw-bold" style="background:#e8f5e9; color:#1b5e20;">
-            Thông tin đơn đặt sân
+    <!-- ============================================================
+         TÓM TẮT ĐƠN ĐẶT SÂN
+         ============================================================ -->
+    <div class="card border-0 mb-4" style="border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,.08);">
+        <div class="card-header border-0 rounded-top py-3 px-4"
+             style="background:linear-gradient(135deg,#15803d,#166534); border-radius:16px 16px 0 0;">
+            <h6 class="mb-0 text-white fw-bold">
+                <i class="bi bi-receipt me-2"></i>Thông tin đơn đặt sân
+            </h6>
         </div>
-        <div class="card-body">
-            <dl class="row mb-0">
+        <div class="card-body px-4 py-3">
 
-                <!-- TÊN SÂN -->
-                <dt class="col-sm-5">Sân</dt>
-                <dd class="col-sm-7">{{ booking.court.name }}</dd>
+            <!-- TÊN SÂN -->
+            <div class="d-flex align-items-start justify-content-between py-2 border-bottom">
+                <span class="text-muted" style="font-size:.9rem; min-width:140px;">
+                    <i class="bi bi-building me-2 text-success"></i>Sân
+                </span>
+                <span class="fw-semibold text-end">{{ booking.court.name }}</span>
+            </div>
 
-                <!-- NGÀY ĐẶT -->
-                <dt class="col-sm-5">Ngày</dt>
-                <dd class="col-sm-7">{{ booking.date|date:"d/m/Y" }}</dd>
+            <!-- NGÀY -->
+            <div class="d-flex align-items-start justify-content-between py-2 border-bottom">
+                <span class="text-muted" style="font-size:.9rem; min-width:140px;">
+                    <i class="bi bi-calendar3 me-2 text-success"></i>Ngày chơi
+                </span>
+                <span class="fw-semibold">{{ booking.date|date:"d/m/Y" }}</span>
+            </div>
 
-                <!-- KHUNG GIỜ -->
-                <dt class="col-sm-5">Khung giờ</dt>
-                <dd class="col-sm-7">
-                    {{ booking.start_time|time:"H:i" }} –
-                    {{ booking.end_time|time:"H:i" }}
-                    ({{ booking.duration_hours }} giờ)
-                </dd>
+            <!-- KHUNG GIỜ -->
+            <div class="d-flex align-items-start justify-content-between py-2 border-bottom">
+                <span class="text-muted" style="font-size:.9rem; min-width:140px;">
+                    <i class="bi bi-clock me-2 text-success"></i>Khung giờ
+                </span>
+                <span class="fw-semibold">
+                    {{ booking.start_time|time:"H:i" }} – {{ booking.end_time|time:"H:i" }}
+                    <span class="text-muted fw-normal">({{ booking.duration_hours }} giờ)</span>
+                </span>
+            </div>
 
-                <!-- GIÁ THUÊ -->
-                <dt class="col-sm-5">Giá</dt>
-                <dd class="col-sm-7">
-                    {% with base_price=booking.court.price_per_hour|floatformat:"0" %}
-                        {{ booking.court.price_per_hour|intcomma }}đ × {{ booking.duration_hours }} giờ
-                    {% endwith %}
-                </dd>
+            <!-- GIÁ GỐC -->
+            <div class="d-flex align-items-start justify-content-between py-2 {% if booking.promotion %}border-bottom{% endif %}">
+                <span class="text-muted" style="font-size:.9rem; min-width:140px;">
+                    <i class="bi bi-tag me-2 text-success"></i>Giá thuê
+                </span>
+                <span class="fw-semibold">
+                    {{ booking.court.price_per_hour|intcomma }}đ × {{ booking.duration_hours }} giờ
+                </span>
+            </div>
 
-                <!-- MÃ GIẢM GIÁ (nếu có) -->
-                {% if booking.promotion %}
-                <dt class="col-sm-5 text-success">Mã giảm giá</dt>
-                <dd class="col-sm-7 text-success">
+            <!-- MÃ GIẢM GIÁ (nếu có) -->
+            {% if booking.promotion %}
+            <div class="d-flex align-items-start justify-content-between py-2 border-bottom">
+                <span style="font-size:.9rem; min-width:140px; color:#15803d;">
+                    <i class="bi bi-scissors me-2"></i>Mã giảm giá
+                </span>
+                <span class="fw-semibold" style="color:#15803d;">
                     {{ booking.promotion.code }}
-                    (−{{ booking.discount_amount|intcomma }}đ)
-                </dd>
-                {% endif %}
+                    <span class="badge ms-1" style="background:#dcfce7; color:#15803d;">
+                        −{{ booking.discount_amount|intcomma }}đ
+                    </span>
+                </span>
+            </div>
+            {% endif %}
 
-                <!-- TỔNG TIỀN -->
-                <dt class="col-sm-5 fw-bold" style="color:#1b5e20;">Tổng tiền</dt>
-                <dd class="col-sm-7 fw-bold fs-5" style="color:#1b5e20;">
-                    {{ booking.total_price|intcomma }}đ
-                </dd>
+            <!-- TỔNG TIỀN (nổi bật) -->
+            <div class="d-flex align-items-center justify-content-between pt-3 mt-1">
+                <span class="fw-bold" style="font-size:1rem; color:#111827;">Tổng thanh toán</span>
+                <span class="fw-bold" style="font-size:1.6rem; color:var(--primary); font-family:'Montserrat',sans-serif;">
+                    {{ booking.total_price|intcomma }}<span style="font-size:1rem;">đ</span>
+                </span>
+            </div>
 
-            </dl>
         </div>
     </div>
 
-    <!-- FORM CHỌN PHƯƠNG THỨC THANH TOÁN -->
-    <div class="card border-0 shadow-sm">
-        <div class="card-header fw-bold" style="background:#e8f5e9; color:#1b5e20;">
-            Chọn phương thức thanh toán
+    <!-- ============================================================
+         CHỌN PHƯƠNG THỨC THANH TOÁN
+         ============================================================ -->
+    <div class="card border-0 mb-4" style="border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,.08);">
+        <div class="card-header border-0 py-3 px-4"
+             style="background:linear-gradient(135deg,#15803d,#166534); border-radius:16px 16px 0 0;">
+            <h6 class="mb-0 text-white fw-bold">
+                <i class="bi bi-wallet2 me-2"></i>Chọn phương thức thanh toán
+            </h6>
         </div>
-        <div class="card-body">
-            <form method="POST">
+        <div class="card-body px-4 py-4">
+            <form method="POST" id="paymentForm">
                 {% csrf_token %}
+                <!-- HIDDEN INPUT — JS gán khi chọn card -->
+                <input type="hidden" name="method" id="selectedMethod" value="cash">
 
-                <!-- PHƯƠNG THỨC -->
-                <div class="mb-4">
-                    <label class="form-label fw-semibold">Phương thức</label>
-                    {{ form.method }}
+                <!-- RADIO CARDS -->
+                <div class="row g-3 mb-4">
+
+                    <!-- TIỀN MẶT -->
+                    <div class="col-12 col-md-4">
+                        <div class="payment-method-card active" data-value="cash"
+                             onclick="selectMethod(this, 'cash')"
+                             style="border:2px solid #15803d; border-radius:12px; padding:1.1rem;
+                                    cursor:pointer; transition:all .2s ease; background:#f0fdf4;">
+                            <div class="d-flex align-items-center gap-3">
+                                <div style="width:40px;height:40px;border-radius:10px;
+                                            background:linear-gradient(135deg,#15803d,#4ade80);
+                                            display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                    <i class="bi bi-cash-stack text-white fs-5"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-semibold" style="font-size:.93rem;">Tiền mặt</div>
+                                    <div class="text-muted" style="font-size:.78rem;">Trả tại sân</div>
+                                </div>
+                                <i class="bi bi-check-circle-fill ms-auto text-success method-check"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MOMO -->
+                    <div class="col-12 col-md-4">
+                        <div class="payment-method-card" data-value="momo"
+                             onclick="selectMethod(this, 'momo')"
+                             style="border:2px solid #e5e7eb; border-radius:12px; padding:1.1rem;
+                                    cursor:pointer; transition:all .2s ease; background:#fff;">
+                            <div class="d-flex align-items-center gap-3">
+                                <div style="width:40px;height:40px;border-radius:10px;
+                                            background:linear-gradient(135deg,#a21caf,#ec4899);
+                                            display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                    <i class="bi bi-phone-fill text-white fs-5"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-semibold" style="font-size:.93rem;">MoMo</div>
+                                    <div class="text-muted" style="font-size:.78rem;">Ví điện tử</div>
+                                </div>
+                                <i class="bi bi-circle ms-auto text-muted method-check"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CHUYỂN KHOẢN -->
+                    <div class="col-12 col-md-4">
+                        <div class="payment-method-card" data-value="banking"
+                             onclick="selectMethod(this, 'banking')"
+                             style="border:2px solid #e5e7eb; border-radius:12px; padding:1.1rem;
+                                    cursor:pointer; transition:all .2s ease; background:#fff;">
+                            <div class="d-flex align-items-center gap-3">
+                                <div style="width:40px;height:40px;border-radius:10px;
+                                            background:linear-gradient(135deg,#1d4ed8,#60a5fa);
+                                            display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                    <i class="bi bi-bank text-white fs-5"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-semibold" style="font-size:.93rem;">Chuyển khoản</div>
+                                    <div class="text-muted" style="font-size:.78rem;">Internet Banking</div>
+                                </div>
+                                <i class="bi bi-circle ms-auto text-muted method-check"></i>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
                 <!-- NÚT XÁC NHẬN -->
                 <div class="d-flex gap-2">
-                    <button type="submit"
-                            class="btn btn-success flex-grow-1 fw-semibold">
-                        <i class="bi bi-check-circle me-1"></i>Xác nhận thanh toán
+                    <button type="submit" class="btn btn-success flex-grow-1 fw-semibold py-3"
+                            style="border-radius:12px; font-size:1rem; font-family:'Montserrat',sans-serif;">
+                        <i class="bi bi-check-circle me-2"></i>Xác nhận thanh toán
+                        <span class="ms-2 fw-bold">{{ booking.total_price|intcomma }}đ</span>
                     </button>
                     <a href="{% url 'bookings:booking_list' %}"
-                       class="btn btn-outline-secondary">
-                        Huỷ
+                       class="btn btn-outline-secondary py-3 px-4"
+                       style="border-radius:12px;">
+                        <i class="bi bi-x-lg"></i>
                     </a>
                 </div>
 
@@ -92,5 +194,33 @@
         </div>
     </div>
 
+    <!-- GHI CHÚ -->
+    <p class="text-muted text-center" style="font-size:.82rem;">
+        <i class="bi bi-shield-check me-1 text-success"></i>
+        Giao dịch được mã hóa và bảo mật. Kết quả thanh toán sẽ hiển thị ngay sau khi xác nhận.
+    </p>
+
 </div>
+
+<script>
+    // CHỌN PHƯƠNG THỨC THANH TOÁN
+    function selectMethod(card, value) {
+        // Reset tất cả
+        document.querySelectorAll('.payment-method-card').forEach(function(c) {
+            c.style.borderColor = '#e5e7eb';
+            c.style.background  = '#fff';
+            var icon = c.querySelector('.method-check');
+            icon.className = 'bi bi-circle ms-auto text-muted method-check';
+        });
+
+        // Active card được chọn
+        card.style.borderColor = '#15803d';
+        card.style.background  = '#f0fdf4';
+        var icon = card.querySelector('.method-check');
+        icon.className = 'bi bi-check-circle-fill ms-auto text-success method-check';
+
+        // Cập nhật hidden input
+        document.getElementById('selectedMethod').value = value;
+    }
+</script>
 {% endblock %}
