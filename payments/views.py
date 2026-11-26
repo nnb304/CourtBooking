@@ -22,6 +22,17 @@ def payment_process(request, booking_id):
         messages.error(request, 'Bạn không có quyền truy cập đơn đặt sân này.')
         return redirect('bookings:booking_list')
 
+    # ĐƠN CHỜ QUÁ HẠN GIỮ CHỖ → TỰ HUỶ, NHẢ KHUNG GIỜ
+    if booking.is_hold_expired:
+        booking.cancel()
+        messages.error(request, 'Đơn đã quá hạn thanh toán nên bị huỷ. Vui lòng đặt lại.')
+        return redirect('bookings:booking_list')
+
+    # ĐƠN ĐÃ HUỶ THÌ KHÔNG THANH TOÁN ĐƯỢC
+    if booking.status == 'cancelled':
+        messages.error(request, 'Đơn đặt sân này đã bị huỷ.')
+        return redirect('bookings:booking_list')
+
     # NẾU ĐÃ THANH TOÁN THÀNH CÔNG THÌ KHÔNG CHO VÀO LẠI
     existing = Payment.objects.filter(booking=booking).first()
     if existing and existing.status == 'success':
@@ -56,6 +67,8 @@ def payment_process(request, booking_id):
                         request,
                         'Thanh toán thất bại. Vui lòng thử lại hoặc chọn phương thức khác.'
                     )
+                    # THẤT BẠI: ở lại trang thanh toán để thử lại trong thời gian giữ chỗ
+                    return redirect('payments:payment_process', booking_id=booking.pk)
 
             return redirect('bookings:booking_list')
 

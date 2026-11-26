@@ -20,7 +20,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-5d7*pjypd8ny2cb!2e9btzxvqr1k&(&d_mm+gh-uejd+n%ti_w'
+import os
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'dev-only-insecure-key-doi-khi-deploy')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -58,6 +59,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'accounts.middleware.SyncRoleMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -91,6 +93,11 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+# DEPLOY: nếu có DATABASE_URL (VD Postgres free trên Render/Neon) thì dùng, tránh mất dữ liệu khi redeploy
+if os.environ.get('DATABASE_URL'):
+    import dj_database_url
+    DATABASES['default'] = dj_database_url.parse(os.environ['DATABASE_URL'], conn_max_age=600)
 
 
 # Password validation
@@ -132,3 +139,5 @@ if os.environ.get('RENDER'):
     MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
     STATIC_ROOT = BASE_DIR / 'staticfiles'
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# GIỮ KIỂU KHOÁ CHÍNH NHẤT QUÁN GIỮA DJANGO 5 VÀ 6
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

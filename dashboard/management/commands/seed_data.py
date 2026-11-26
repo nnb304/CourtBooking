@@ -3,6 +3,7 @@ Lệnh tạo dữ liệu demo cho CourtBooking.
 Chạy: python manage.py seed_data
 Reset: python manage.py seed_data --reset
 """
+from django.db import IntegrityError, transaction
 
 import io
 import os
@@ -569,17 +570,24 @@ class Command(BaseCommand):
                 else:
                     discount_amount = min(int(promo.discount_value), order_total)
 
-            Booking.objects.create(
-                court=court,
-                user=player,
-                date=bk_date,
-                start_time=start_t,
-                duration_hours=2,
-                promotion=promo,
-                discount_amount=discount_amount,
-                total_price=order_total - discount_amount,
-                status=status,
-            )
+            try:
+                with transaction.atomic():
+                    booking = Booking.objects.create(
+                        court=court,
+                        user=player,
+                        date=bk_date,
+                        start_time=start_t,
+                        duration_hours=2,
+                        promotion=promo,
+                        original_price=order_total,
+                        discount_amount=discount_amount,
+                        total_price=order_total - discount_amount,
+                        status=status,
+                    )
+                    if status != 'cancelled':
+                        booking.reserve_slots()   # chồng giờ → IntegrityError → bỏ qua
+            except IntegrityError:
+                continue
             created += 1
 
         self.stdout.write(f'[OK] Đã tạo {created} bookings.')

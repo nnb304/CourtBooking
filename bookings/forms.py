@@ -1,6 +1,8 @@
 from datetime import date, datetime, timedelta
+
 from django import forms
-from .models import Booking
+
+from .models import CLOSE_HOUR, OPEN_HOUR, SLOT_MINUTES, Booking
 
 
 # FORM ĐẶT SÂN (date, start_time, duration_hours được điền từ JS time-slot grid)
@@ -8,7 +10,7 @@ class BookingForm(forms.ModelForm):
 
     class Meta:
         model  = Booking
-        # court, user, total_price, status gán ở view — không để user nhập
+        # court, user, giá, status gán ở view — không để user nhập
         fields = ['date', 'start_time', 'duration_hours']
         widgets = {
             'date':           forms.HiddenInput(),
@@ -33,39 +35,44 @@ class BookingForm(forms.ModelForm):
         if not (booking_date and start_time and duration_hours):
             return cleaned_data
 
-        # KHÔNG CHO ĐẶT NGÀY TRONG QUÁ KHỨ
-        if booking_date < date.today():
-            raise forms.ValidationError('Không thể đặt sân cho ngày đã qua.')
-        elif booking_date == date.today() and start_time < datetime.now().time():
-            raise forms.ValidationError('Không thể đặt khung giờ đã qua trong ngày hôm nay.')
+        # GIỜ BẮT ĐẦU PHẢI ĐÚNG MỐC 30 PHÚT (chống sửa hidden input bằng F12)
+        if start_time.minute % SLOT_MINUTES or start_time.second:
+            raise forms.ValidationError('Giờ bắt đầu phải theo mốc 30 phút (VD 08:00, 08:30).')
 
-        # TÍNH GIỜ KẾT THÚC CỦA ĐƠN MỚI
         dt_new_start = datetime.combine(booking_date, start_time)
         dt_new_end   = dt_new_start + timedelta(hours=duration_hours)
-        new_start    = dt_new_start.time()
-        new_end      = dt_new_end.time()
+        dt_open      = datetime.combine(booking_date, datetime.min.time()).replace(hour=OPEN_HOUR)
+        dt_close     = datetime.combine(booking_date, datetime.min.time()).replace(hour=CLOSE_HOUR)
 
-        # LẤY CÁC BOOKING CÙNG SÂN + CÙNG NGÀY + CHƯA HUỶ
+        # KHÔNG CHO ĐẶT NGÀY / GIỜ TRONG QUÁ KHỨ
+        if booking_date < date.today():
+            raise forms.ValidationError('Không thể đặt sân cho ngày đã qua.')
+        if dt_new_start < datetime.now():
+            raise forms.ValidationError('Không thể đặt khung giờ đã qua trong ngày hôm nay.')
+
+        # PHẢI NẰM TRONG GIỜ MỞ CỬA (so sánh datetime nên không lỗi khi vắt qua nửa đêm)
+        if dt_new_start < dt_open or dt_new_end > dt_close:
+            raise forms.ValidationError(
+                f'Sân chỉ mở từ {OPEN_HOUR:02d}:00 đến {CLOSE_HOUR:02d}:00. '
+                f'Khung giờ bạn chọn kết thúc lúc {dt_new_end.strftime("%H:%M")}.'
+            )
+
+        # LỚP 1: KIỂM TRA GIAO NHAU VỚI CÁC ĐƠN CHƯA HUỶ (báo lỗi thân thiện cho người dùng)
         existing = Booking.objects.filter(
             court=self.court,
             date=booking_date,
         ).exclude(status='cancelled')
-
-        # BỎ QUA CHÍNH ĐƠN ĐANG SỬA (nếu là update)
         if self.booking_id:
             existing = existing.exclude(pk=self.booking_id)
 
-        # KIỂM TRA GIAO NHAU: [new_start, new_end) ∩ [exist_start, exist_end) ≠ ∅
         # Điều kiện giao nhau: new_start < exist_end VÀ new_end > exist_start
         for booking in existing:
-            exist_start = booking.start_time
-            dt_exist    = datetime.combine(booking_date, exist_start)
-            exist_end   = (dt_exist + timedelta(hours=booking.duration_hours)).time()
-
-            if new_start < exist_end and new_end > exist_start:
+            dt_exist_start = datetime.combine(booking_date, booking.start_time)
+            dt_exist_end   = dt_exist_start + timedelta(hours=booking.duration_hours)
+            if dt_new_start < dt_exist_end and dt_new_end > dt_exist_start:
                 raise forms.ValidationError(
-                    f'Khung giờ này đã có người đặt ({exist_start.strftime("%H:%M")} – '
-                    f'{exist_end.strftime("%H:%M")}). Vui lòng chọn giờ khác.'
+                    f'Khung giờ này đã có người đặt ({dt_exist_start.strftime("%H:%M")} – '
+                    f'{dt_exist_end.strftime("%H:%M")}). Vui lòng chọn giờ khác.'
                 )
 
         return cleaned_data

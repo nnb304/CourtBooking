@@ -44,7 +44,10 @@
                             <th class="py-3">Khách</th>
                             <th class="py-3">Ngày</th>
                             <th class="py-3">Khung giờ</th>
-                            <th class="py-3">Tổng tiền</th>
+                            <th class="py-3 text-end">Giá gốc</th>
+                            <th class="py-3 text-end">Giảm giá</th>
+                            <th class="py-3 text-end">Thực thu</th>
+                            <th class="py-3">Thanh toán</th>
                             <th class="py-3">Trạng thái</th>
                             <th class="py-3 pe-4">Tạo lúc</th>
                         </tr>
@@ -55,14 +58,31 @@
                             <td class="text-muted small ps-4">{{ page_obj.start_index|add:forloop.counter0 }}</td>
                             <td class="fw-semibold text-dark">{{ booking.court.name }}</td>
                             <td>
-                                <span class="fw-bold text-dark">{{ booking.user.username }}</span>
+                                <span class="fw-bold text-dark">{{ booking.user.get_full_name|default:booking.user.username }}</span>
+                                <br><small class="text-muted">@{{ booking.user.username }}</small>
                                 {% if booking.user.phone %}
-                                    <br><small class="text-muted">{{ booking.user.phone }}</small>
+                                    <br><small class="text-muted"><i class="bi bi-telephone me-1"></i><a href="tel:{{ booking.user.phone }}" class="text-muted">{{ booking.user.phone }}</a></small>
+                                {% endif %}
+                                {% if booking.user.email %}
+                                    <br><small class="text-muted"><i class="bi bi-envelope me-1"></i>{{ booking.user.email }}</small>
                                 {% endif %}
                             </td>
                             <td class="text-muted">{{ booking.date|date:"d/m/Y" }}</td>
                             <td class="text-muted">{{ booking.start_time|time:"H:i" }} – {{ booking.end_time|time:"H:i" }}</td>
-                            <td><span class="fw-bold text-success">{{ booking.total_price|intcomma }}đ</span></td>
+                            <td class="text-end text-muted">{{ booking.original_price|intcomma }}đ</td>
+                            <td class="text-end">
+                                {% if booking.discount_amount %}
+                                    <span class="text-danger">-{{ booking.discount_amount|intcomma }}đ</span>
+                                    {% if booking.promotion %}<br><small class="text-muted">Mã {{ booking.promotion.code }}</small>{% endif %}
+                                {% else %}<span class="text-muted">—</span>{% endif %}
+                            </td>
+                            <td class="text-end"><span class="fw-bold text-success">{{ booking.total_price|intcomma }}đ</span></td>
+                            <td class="small">
+                                {% if booking.payment %}
+                                    {{ booking.payment.get_method_display }}<br>
+                                    <span class="text-muted">{{ booking.payment.get_status_display }}{% if booking.payment.paid_at %} · {{ booking.payment.paid_at|date:"d/m H:i" }}{% endif %}</span>
+                                {% else %}<span class="text-muted">Chưa thanh toán</span>{% endif %}
+                            </td>
                             <td>
                                 {% if booking.status == 'confirmed' %}
                                     <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-3 py-2">Đã xác nhận</span>
@@ -76,6 +96,15 @@
                         </tr>
                         {% endfor %}
                     </tbody>
+                    <tfoot class="table-light fw-semibold">
+                        <tr>
+                            <td colspan="5" class="ps-4 py-3">Tổng {{ totals.count }} đơn{% if current_status %} (theo bộ lọc){% endif %}</td>
+                            <td class="text-end py-3">{{ totals.original|default:0|intcomma }}đ</td>
+                            <td class="text-end py-3 text-danger">-{{ totals.discount|default:0|intcomma }}đ</td>
+                            <td class="text-end py-3 text-success">{{ totals.actual|default:0|intcomma }}đ</td>
+                            <td colspan="3"></td>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>
