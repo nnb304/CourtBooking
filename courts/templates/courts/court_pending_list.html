@@ -36,12 +36,7 @@
                             {% else %}
                                 <div class="d-flex align-items-center justify-content-center"
                                      style="width:70px; height:50px; background:#c8e6c9; border-radius:6px; font-size:24px;">
-                                    {% if court.court_type == 'badminton' %}🏸
-                                    {% elif court.court_type == 'football' %}⚽
-                                    {% elif court.court_type == 'pickleball' %}🏓
-                                    {% elif court.court_type == 'basketball' %}🏀
-                                    {% elif court.court_type == 'tennis' %}🎾
-                                    {% else %}🏟️{% endif %}
+                                    {% include 'partials/sport_icon.html' with t=court.court_type %}
                                 </div>
                             {% endif %}
                         </td>

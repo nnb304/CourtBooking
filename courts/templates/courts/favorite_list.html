@@ -22,12 +22,7 @@
                             <img src="{{ court.image.url }}" alt="{{ court.name }}">
                         {% else %}
                             <div class="court-img-placeholder">
-                                {% if court.court_type == 'badminton' %}🏸
-                                {% elif court.court_type == 'football' %}⚽
-                                {% elif court.court_type == 'pickleball' %}🏓
-                                {% elif court.court_type == 'basketball' %}🏀
-                                {% elif court.court_type == 'tennis' %}🎾
-                                {% else %}🏟️{% endif %}
+                                {% include 'partials/sport_icon.html' with t=court.court_type %}
                             </div>
                         {% endif %}
 
