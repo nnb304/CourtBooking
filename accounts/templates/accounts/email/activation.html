@@ -1,0 +1,10 @@
+<div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;padding:24px;color:#1f2937;">
+  <h2 style="color:#15803d;margin:0 0 16px;">CourtBooking</h2>
+  <p>Xin chào <b>{{ user.username }}</b>,</p>
+  <p>Cảm ơn bạn đã đăng ký. Bấm nút dưới đây để kích hoạt tài khoản:</p>
+  <p style="text-align:center;margin:28px 0;">
+    <a href="{{ link }}" style="background:#15803d;color:#fff;padding:12px 28px;border-radius:10px;text-decoration:none;font-weight:bold;">Xác nhận email</a>
+  </p>
+  <p style="font-size:13px;color:#6b7280;">Link có hiệu lực trong {{ hours }} giờ. Nếu nút không bấm được, copy link sau vào trình duyệt:<br>{{ link }}</p>
+  <p style="font-size:13px;color:#6b7280;">Nếu bạn không đăng ký, hãy bỏ qua email này.</p>
+</div>

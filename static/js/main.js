@@ -163,3 +163,66 @@ function selectDistrict(el) {
     if (menu)    menu.style.display = 'none';
     if (chevron) chevron.classList.remove('chevron-rotated');
 }
+
+// ============================================================
+// CUỘN MƯỢT (Lenis) + HIỆU ỨNG KHI LƯỚT
+// ============================================================
+document.addEventListener('DOMContentLoaded', function () {
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // -------- LENIS SMOOTH SCROLL --------
+    if (!reduce && window.Lenis) {
+        document.documentElement.style.scrollBehavior = 'auto';
+        var lenis = new window.Lenis({ duration: 1.15, smoothWheel: true, anchors: true });
+        (function raf(t) { lenis.raf(t); requestAnimationFrame(raf); })(0);
+        window.cbLenis = lenis;
+    }
+
+    // -------- REVEAL CHO CÁC KHỐI CHUNG (card, section title...) --------
+    var auto = document.querySelectorAll('main .card, main .feature-tile, main .sport-cat, main .section-title, main h2');
+    auto.forEach(function (el) {
+        if (!el.closest('.reveal-slide-up') && !el.classList.contains('reveal-slide-up')) el.classList.add('reveal-fx');
+    });
+    if ('IntersectionObserver' in window) {
+        var io = new IntersectionObserver(function (entries) {
+            entries.forEach(function (e) {
+                if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); }
+            });
+        }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+        document.querySelectorAll('.reveal-fx, .reveal-slide-up').forEach(function (el, i) {
+            el.style.setProperty('--d', (i % 6) * 60 + 'ms');
+            io.observe(el);
+        });
+    } else {
+        document.querySelectorAll('.reveal-fx, .reveal-slide-up').forEach(function (el) { el.classList.add('revealed'); });
+    }
+
+    // -------- PARALLAX NHẸ CHO HERO --------
+    var hero = document.querySelector('.hero-dark');
+    if (hero && !reduce) {
+        var copy = hero.querySelector('.hero-copy');
+        var glows = hero.querySelectorAll('.hero-glow');
+        var ticking = false;
+        window.addEventListener('scroll', function () {
+            if (ticking) return; ticking = true;
+            requestAnimationFrame(function () {
+                var y = Math.min(window.scrollY, 700);
+                if (copy) { copy.style.transform = 'translate3d(0,' + y * 0.18 + 'px,0)'; copy.style.opacity = String(1 - y / 900); }
+                glows.forEach(function (g, i) { g.style.translate = '0 ' + y * (i ? -0.25 : 0.35) + 'px'; });
+                ticking = false;
+            });
+        }, { passive: true });
+    }
+
+    // -------- CARD NGHIÊNG THEO CHUỘT (chỉ desktop) --------
+    if (!reduce && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+        document.querySelectorAll('.court-card').forEach(function (card) {
+            card.addEventListener('mousemove', function (ev) {
+                var r = card.getBoundingClientRect();
+                var x = (ev.clientX - r.left) / r.width - 0.5, y = (ev.clientY - r.top) / r.height - 0.5;
+                card.style.transform = 'translateY(-6px) perspective(900px) rotateX(' + (-y * 5) + 'deg) rotateY(' + (x * 5) + 'deg)';
+            });
+            card.addEventListener('mouseleave', function () { card.style.transform = ''; });
+        });
+    }
+});

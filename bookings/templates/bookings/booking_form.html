@@ -111,12 +111,7 @@
             <img src="{{ court.image.url }}" alt="{{ court.name }}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 0.75rem; flex-shrink: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
         {% else %}
             <div style="width: 120px; height: 120px; border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; background-color: #f3f4f6; font-size: 3rem; flex-shrink: 0;">
-                {% if court.court_type == 'badminton' %}🏸
-                {% elif court.court_type == 'football' %}⚽
-                {% elif court.court_type == 'pickleball' %}🏓
-                {% elif court.court_type == 'basketball' %}🏀
-                {% elif court.court_type == 'tennis' %}🎾
-                {% else %}🏟️{% endif %}
+                {% include 'partials/sport_icon.html' with t=court.court_type %}
             </div>
         {% endif %}
         <div>

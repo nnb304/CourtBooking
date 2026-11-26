@@ -172,6 +172,12 @@ Booking.objects.create(
     date=TODAY, start_time=time(15, 0), duration_hours=1,
     total_price=300000, status='confirmed'
 )
+# GIÁ GỐC + GIỮ SLOT CHO ĐƠN DEMO
+for b in Booking.objects.all():
+    b.original_price = b.total_price + b.discount_amount
+    b.save(update_fields=['original_price'])
+    if b.status != 'cancelled':
+        b.reserve_slots()
 print(" OK - 8 booking (7 confirmed + 1 pending)")
 
 # ==================== 6. TAO FAVORITE ====================

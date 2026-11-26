@@ -58,6 +58,8 @@ def court_list(request):
         'court_type_choices': Court.COURT_TYPE_CHOICES,
         'district_choices':   Court.DISTRICT_CHOICES,
         'favorited_ids':      _get_favorited_ids(request.user),
+        # ẢNH CHO DẢI GALLERY CHẠY NGANG Ở TRANG CHỦ
+        'gallery':            Court.objects.filter(is_active=True).exclude(image='').only('id', 'name', 'image', 'court_type')[:10],
     }
     return render(request, 'courts/home.html', context)
 
