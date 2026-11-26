@@ -1,0 +1,9 @@
+Xin chào {{ user.username }},
+
+Cảm ơn bạn đã đăng ký CourtBooking. Bấm vào link dưới đây để kích hoạt tài khoản:
+
+{{ link }}
+
+Link có hiệu lực trong {{ hours }} giờ. Nếu bạn không đăng ký, hãy bỏ qua email này.
+
+CourtBooking

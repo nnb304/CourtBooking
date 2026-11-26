@@ -27,6 +27,13 @@ class RegisterForm(UserCreationForm):
         self.fields['password1'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Mật khẩu'})
         self.fields['password2'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Nhập lại mật khẩu'})
 
+    # MỖI EMAIL CHỈ ĐĂNG KÝ 1 TÀI KHOẢN
+    def clean_email(self):
+        email = self.cleaned_data['email'].strip().lower()
+        if User.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError('Email này đã được dùng cho tài khoản khác.')
+        return email
+
     def save(self, commit=True):
         user = super().save(commit=False)
         user.role = 'player'   # mặc định người dùng mới là player

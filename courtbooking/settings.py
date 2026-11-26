@@ -141,3 +141,22 @@ if os.environ.get('RENDER'):
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # GIỮ KIỂU KHOÁ CHÍNH NHẤT QUÁN GIỮA DJANGO 5 VÀ 6
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# EMAIL: chạy máy local → in email ra terminal; có EMAIL_HOST_USER → gửi thật qua SMTP (mặc định Gmail)
+if os.environ.get('EMAIL_HOST_USER'):
+    EMAIL_BACKEND       = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST          = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+    EMAIL_PORT          = int(os.environ.get('EMAIL_PORT', 587))
+    EMAIL_USE_TLS       = True
+    EMAIL_HOST_USER     = os.environ['EMAIL_HOST_USER']
+    EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')   # Gmail: App Password 16 ký tự
+    DEFAULT_FROM_EMAIL  = f"CourtBooking <{EMAIL_HOST_USER}>"
+else:
+    EMAIL_BACKEND      = 'django.core.mail.backends.console.EmailBackend'
+    DEFAULT_FROM_EMAIL = 'CourtBooking <no-reply@courtbooking.local>'
+PASSWORD_RESET_TIMEOUT = 60 * 60 * 24   # link kích hoạt hết hạn sau 24 giờ
+
+# VIETQR: thông tin tài khoản nhận tiền, tự điền qua biến môi trường (không ghi vào code)
+VIETQR_BANK_ID      = os.environ.get('VIETQR_BANK_ID', '')       # VD: MB, VCB, TCB, ICB...
+VIETQR_ACCOUNT_NO   = os.environ.get('VIETQR_ACCOUNT_NO', '')
+VIETQR_ACCOUNT_NAME = os.environ.get('VIETQR_ACCOUNT_NAME', '')

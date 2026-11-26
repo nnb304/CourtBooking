@@ -176,6 +176,31 @@
 
                 </div>
 
+                <!-- KHUNG QR CHUYỂN KHOẢN (hiện khi chọn Chuyển khoản) -->
+                <div id="qrPanel" class="d-none mb-4" style="border:2px dashed #93c5fd; border-radius:12px; padding:1.25rem; background:#f8fbff;">
+                    {% if qr.configured %}
+                    <div class="row g-3 align-items-center">
+                        <div class="col-12 col-md-5 text-center">
+                            <img src="{{ qr.url }}" alt="Mã VietQR thanh toán" class="img-fluid" style="max-width:240px; border-radius:10px; background:#fff;">
+                        </div>
+                        <div class="col-12 col-md-7" style="font-size:.9rem;">
+                            <div class="fw-semibold mb-2">Quét mã bằng app ngân hàng bất kỳ</div>
+                            <div class="text-muted">Ngân hàng: <b class="text-dark">{{ qr.bank }}</b></div>
+                            <div class="text-muted">Số tài khoản: <b class="text-dark">{{ qr.account_no }}</b></div>
+                            {% if qr.account_name %}<div class="text-muted">Chủ tài khoản: <b class="text-dark">{{ qr.account_name }}</b></div>{% endif %}
+                            <div class="text-muted">Số tiền: <b class="text-success">{{ booking.total_price|intcomma }}đ</b></div>
+                            <div class="text-muted">Nội dung: <b class="text-dark">{{ qr.note }}</b></div>
+                            <div class="text-muted mt-2" style="font-size:.8rem;">Chuyển xong, bấm <b>Xác nhận thanh toán</b> bên dưới.</div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="text-muted" style="font-size:.9rem;">
+                        Chưa cấu hình tài khoản nhận tiền (VIETQR_BANK_ID, VIETQR_ACCOUNT_NO) nên chưa hiện được mã QR.
+                        Nội dung chuyển khoản của đơn này: <b class="text-dark">{{ qr.note }}</b>.
+                    </div>
+                    {% endif %}
+                </div>
+
                 <!-- NÚT XÁC NHẬN -->
                 <div class="d-flex gap-2">
                     <button type="submit" class="btn btn-success flex-grow-1 fw-semibold py-3"
@@ -221,6 +246,9 @@
 
         // Cập nhật hidden input
         document.getElementById('selectedMethod').value = value;
+
+        // HIỆN / ẨN MÃ QR KHI CHỌN CHUYỂN KHOẢN
+        document.getElementById('qrPanel').classList.toggle('d-none', value !== 'banking');
     }
 </script>
 {% endblock %}
